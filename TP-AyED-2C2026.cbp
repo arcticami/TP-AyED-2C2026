@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="TP-AyED-2C2026" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Test_P1">
+				<Option output="bin/cbp/Test_P1" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Test_P1/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="parte1" />
+				</Compiler>
+			</Target>
+			<Target title="Test_P2">
+				<Option output="bin/cbp/Test_P2" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Test_P2/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="parte2" />
+					<Add directory="arbol" />
+				</Compiler>
+			</Target>
+			<Target title="Sim_P1">
+				<Option output="bin/cbp/Sim_P1" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Sim_P1/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="parte1" />
+				</Compiler>
+			</Target>
+			<Target title="Sim_P2">
+				<Option output="bin/cbp/Sim_P2" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Sim_P2/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="parte2" />
+					<Add directory="arbol" />
+				</Compiler>
+			</Target>
+			<Target title="Generador">
+				<Option output="bin/cbp/Generador" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Generador/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="Todo" targets="Test_P1;Test_P2;Sim_P1;Sim_P2;Generador;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-Wextra" />
+			<Add option="-std=c99" />
+			<Add directory="lista" />
+		</Compiler>
+		<Unit filename="arbol/arbol_bin_busq.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P2" />
+			<Option target="Sim_P2" />
+		</Unit>
+		<Unit filename="arbol/arbol_bin_busq.h" />
+		<Unit filename="parte1/lrucache.h">
+			<Option target="Test_P1" />
+			<Option target="Sim_P1" />
+		</Unit>
+		<Unit filename="lista/lista.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P1" />
+			<Option target="Sim_P1" />
+		</Unit>
+		<Unit filename="lista/lista.h" />
+		<Unit filename="lista/listaDoble.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P2" />
+			<Option target="Sim_P2" />
+		</Unit>
+		<Unit filename="lista/listaDoble.h" />
+		<Unit filename="parte1/lrucache1.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P1" />
+			<Option target="Sim_P1" />
+		</Unit>
+		<Unit filename="parte2/lrucache.h">
+			<Option target="Test_P2" />
+			<Option target="Sim_P2" />
+		</Unit>
+		<Unit filename="parte2/lrucache2.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P2" />
+			<Option target="Sim_P2" />
+		</Unit>
+		<Unit filename="parte3/generador.c">
+			<Option compilerVar="CC" />
+			<Option target="Generador" />
+		</Unit>
+		<Unit filename="parte3/simulador.c">
+			<Option compilerVar="CC" />
+			<Option target="Sim_P1" />
+			<Option target="Sim_P2" />
+		</Unit>
+		<Unit filename="pruebas/test_lrucache.c">
+			<Option compilerVar="CC" />
+			<Option target="Test_P1" />
+			<Option target="Test_P2" />
+		</Unit>
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
