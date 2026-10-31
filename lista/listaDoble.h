@@ -1,6 +1,10 @@
 #ifndef LISTADOBLE_H_INCLUDED
 #define LISTADOBLE_H_INCLUDED
 
-
+#define SIN_MEM 1
+#define CLA_DUP 2
+#define NO_EXISTE 3
+#define ERROR_PARAMETROS 4
+#define TODO_BIEN 0
 
 #endif // LISTADOBLE_H_INCLUDED
