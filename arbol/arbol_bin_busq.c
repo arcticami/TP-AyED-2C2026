@@ -46,7 +46,7 @@ int insertarEnArbolRecursiva( tArbol *pa, const void *d,unsigned tam, int(*cmp)(
 
 unsigned alturaArbol(const tArbol * p)
 {
-    int hi,hd;
+    unsigned hi, hd;
 
     if(!*p)
         return 0;
@@ -54,7 +54,7 @@ unsigned alturaArbol(const tArbol * p)
     hi = alturaArbol(&(*p)->izq);
     hd = alturaArbol(&(*p)->der);
 
-    return (hi > hd ? hi : hd) +1;
+    return (hi > hd ? hi : hd) + 1;
 }
 
 tArbol * buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *))
@@ -85,4 +85,34 @@ void vaciarArbol(tArbol *pa) //pensar si iterativa o recursiva
     free(*pa);
     *pa = NULL;
 }
-//falta eliminarNodoArbol
+
+void eliminarNodoArbol(tArbol *pa)
+{
+    tNodoArbol *aux, *suc;
+    tArbol *menor;
+
+    if (*pa == NULL)
+        return;
+
+    aux = *pa;
+
+    if (aux->izq == NULL)       //0 hijos o solo hijo derecho: el hijo (o NULL) ocupa su lugar
+        *pa = aux->der;
+    else if (aux->der == NULL)  //solo hijo izquierdo
+        *pa = aux->izq;
+    else                        //2 hijos: lo reemplaza el menor del subarbol derecho (su sucesor)
+    {
+        menor = &aux->der;
+        while ((*menor)->izq)
+            menor = &(*menor)->izq;
+
+        suc = *menor;
+        *menor = suc->der;      //el sucesor se desengancha y su hijo derecho ocupa su lugar
+        suc->izq = aux->izq;    //el sucesor hereda los dos hijos del nodo eliminado
+        suc->der = aux->der;
+        *pa = suc;
+    }
+
+    free(aux->info);
+    free(aux);
+}

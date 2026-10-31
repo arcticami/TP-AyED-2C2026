@@ -1,7 +1,6 @@
 #ifndef ARBOL_BIN_BUSQ_H_INCLUDED
 #define ARBOL_BIN_BUSQ_H_INCLUDED
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +26,6 @@ int insertarEnArbolRecursiva( tArbol *pa, const void *d,unsigned tam, int(*cmp)(
 tArbol * buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *)); //devuelve el tArbol * , no te pasa una copia del dato
 unsigned alturaArbol(const tArbol * p);
 void vaciarArbol(tArbol *pa);
-//falta eliminarNodoArbol
-
+void eliminarNodoArbol(tArbol *pa);
 
 #endif // ARBOL_BIN_BUSQ_H_INCLUDED
