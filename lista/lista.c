@@ -1,6 +1,6 @@
 #include "lista.h"
 
-#define minimo(X, Y) ((X) <= (Y) ? (X) : (Y))
+#define MINIMO(X, Y) ((X) <= (Y) ? (X) : (Y))
 
 void crearLista (tLista *p)
 {
@@ -50,7 +50,7 @@ int sacarUltimoLista (tLista *p, void *d, unsigned cantBytes)
     while ((*p)->sig)
         p = &(*p)->sig;
 
-    memcpy(d, (*p)->info, minimo(cantBytes, (*p)->tamInfo));
+    memcpy(d, (*p)->info, MINIMO(cantBytes, (*p)->tamInfo));
     free((*p)->info);
     free(*p);
     *p = NULL;
