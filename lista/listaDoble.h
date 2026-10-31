@@ -35,8 +35,8 @@ int ponerPrimeroListaD(tListaD* p, const void* pd, unsigned cantBytes);
 int sacarUltimoListaD(tListaD* p,void* pd, unsigned cantBytes);
 
 //funciones nuevas especificas para cache
-void llevarAPrimeroListaD (tListaD *p,tNodoD * mover); //se puede con Nodo ya que si sabes cual es ant y sig
-void eliminarNodoListaD (tListaD *p,tNodoD * elim);
+void llevarAPrimeroListaD (tListaD *p, tNodoD *mover); //se puede con Nodo ya que si sabes cual es ant y sig
+void eliminarNodoListaD (tListaD *p, tNodoD *elim);
 
 /*
 void mostrarIzqADerListaD(tListaD* p);
