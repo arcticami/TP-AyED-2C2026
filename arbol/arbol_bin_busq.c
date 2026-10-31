@@ -44,17 +44,17 @@ int insertarEnArbolRecursiva( tArbol *pa, const void *d,unsigned tam, int(*cmp)(
     return TODO_BIEN;
 }
 
-unsigned alturaArbol (const tArbol * p)
+unsigned alturaArbol(const tArbol * p)
 {
     int hi,hd;
 
     if(!*p)
-    return 0;
+        return 0;
 
-    hi= alturaArbolBin (& (*p)->izq);
-    hd= alturaArbolBin (& (*p)->der);
+    hi = alturaArbol(&(*p)->izq);
+    hd = alturaArbol(&(*p)->der);
 
-    return (hi>hd ? hi : hd) +1;
+    return (hi > hd ? hi : hd) +1;
 }
 
 tArbol * buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *))
