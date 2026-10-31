@@ -5,41 +5,35 @@ void crearArbol(tArbol *pa)
     *pa = NULL;
 }
 
-int insertarEnArbolRecursiva( tArbol *pa, const void *d,unsigned tam, int(*cmp)(const void * , const void *)) //p o pa, es lo mismo
+int insertarEnArbol(tArbol *pa, const void *d, unsigned tam, int (*cmp)(const void *, const void *))
 {
-
     tNodoArbol *nue;
     int rc;
 
-    if(*pa)
+    //bajamos hasta encontrar el enlace vacio donde va el nodo (pa siempre apunta al enlace, no al nodo)
+    while (*pa)
     {
-        if((rc=cmp(d,(*pa)->info) )<0) //primero si es mas chico, luego si es mas grande y luego si es duplicado (poco probable)
-        {
-           return insertarEnArbolRecursiva(&(*pa)->izq,d,tam,cmp); // nos movemos hacia el hijo de la izquierda
-        }
-        else if (rc>0)
-            return insertarEnArbolRecursiva(&(*pa)->der,d,tam,cmp); // nos movemos hacia el hijo de la izquierda
-
-            else
-                return CLA_DUP; // o tratamiento de duplicados
+        if ((rc = cmp(d, (*pa)->info)) < 0)
+            pa = &(*pa)->izq;
+        else if (rc > 0)
+            pa = &(*pa)->der;
+        else
+            return CLA_DUP;
     }
 
     //reservar y chequear memoria
     if ((nue = (tNodoArbol *)malloc(sizeof(tNodoArbol))) == NULL || (nue->info = malloc(tam)) == NULL)
-        {
-            free(nue);
-            return SIN_MEM;
-        }
+    {
+        free(nue);
+        return SIN_MEM;
+    }
 
-    //copiamos el dato
+    //copiamos el dato y enganchamos el nodo nuevo
     nue->tamInfo = tam;
-    memcpy(nue->info,d,tam);
+    memcpy(nue->info, d, tam);
+    nue->izq = nue->der = NULL;
 
-
-    // enganchamos el nodo nuevo
-    nue->izq = nue->der = NULL; // o *pa
-
-    *pa=nue; //ponemos en el padre que su hijo (izq - der) es nue
+    *pa = nue; //el enlace que estaba vacio ahora apunta al nodo nuevo
 
     return TODO_BIEN;
 }
@@ -57,18 +51,14 @@ unsigned alturaArbol(const tArbol * p)
     return (hi > hd ? hi : hd) + 1;
 }
 
-tArbol * buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *))
+tArbol *buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *))
 {
     int rc;
 
-    if (*pa == NULL)
-        return NULL;
+    while (*pa && (rc = cmp(d, (*pa)->info)) != 0)
+        pa = (rc < 0) ? &(*pa)->izq : &(*pa)->der;
 
-    if ((rc = cmp(d, (*pa)->info)) < 0)
-        return buscarNodoArbol(&(*pa)->izq, d, cmp);
-    if (rc > 0)
-        return buscarNodoArbol(&(*pa)->der, d, cmp);
-    return pa;
+    return *pa ? pa : NULL;
 }
 
 void vaciarArbol(tArbol *pa) //pensar si iterativa o recursiva

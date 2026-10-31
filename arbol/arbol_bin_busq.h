@@ -22,8 +22,8 @@ typedef struct sNodoArbol
 typedef tNodoArbol *tArbol;
 
 void crearArbol(tArbol *pa);
-int insertarEnArbolRecursiva( tArbol *pa, const void *d,unsigned tam, int(*cmp)(const void * , const void *));
-tArbol * buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *)); //devuelve el tArbol * , no te pasa una copia del dato
+int insertarEnArbol(tArbol *pa, const void *d, unsigned tam, int (*cmp)(const void *, const void *));
+tArbol *buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, const void *)); //devuelve el tArbol * , no te pasa una copia del dato
 unsigned alturaArbol(const tArbol * p);
 void vaciarArbol(tArbol *pa);
 void eliminarNodoArbol(tArbol *pa);
