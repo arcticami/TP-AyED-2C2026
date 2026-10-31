@@ -96,9 +96,10 @@ int sacarUltimoListaD(tListaD* p,void* pd, unsigned cantBytes)
     return TODO_BIEN;
 }
 
-void llevarAPrimeroListaD (tListaD *p,tNodoD * mover)
+void llevarAPrimeroListaD (tListaD *p, tNodoD *mover)
 {
-    if(p == NULL || mover == NULL)
+    //si el nodo ya es el primero ya esta en su lugar y salimos sin tocar nada
+    if(p == NULL || mover == NULL || p->pri == mover)
         return;
 
     // desenganchar
@@ -122,7 +123,7 @@ void llevarAPrimeroListaD (tListaD *p,tNodoD * mover)
     p->pri = mover;
 }
 
-void eliminarNodoListaD (tListaD *p,tNodoD * elim)
+void eliminarNodoListaD (tListaD *p, tNodoD *elim)
 {
     if(p == NULL || elim == NULL)
         return;
