@@ -56,3 +56,7 @@ dkms.conf
 *.depend
 bin/
 obj/
+
+# Lotes generados por el generador (se rearman con correr_simulacion.bat)
+datos/
+reporte.tmp

@@ -27,7 +27,7 @@ void VaciarLruCache (tLruCache *c)
     c->cantidad = 0; // solo estos dos, la cache queda reutilizable
 }
 
-int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigned tamValor) //inserta al principio si no está, clave duplicada actualiza valor y mueve hacia adelante. el cmp lo hace con clave (para buscar). Si cache estaba llena, elimina ultimo
+int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigned tamValor) //inserta al principio si no está, clave duplicada actualiza valor y mueve hacia adelante. el cmp lo hace con clave (para buscar). Si con el nuevo se pasa de la capacidad, elimina ultimo
 {
     int resultado;
     tLista * aux;
@@ -52,23 +52,24 @@ int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigne
     {
         //no estaba en cache
 
-
-        //si la cache estaba llena hay que borrar el ultimo
-        if(c->cantidad >= c->capacidad) //solo deberia poder ser igual
-        {
-            sacarUltimoLista(&(c->l),NULL,0); // le paso una variable cualquiera para que el memcpy no rompa
-            c->cantidad --;
-        }
-
-
-        //insertamos nuevo
+        //insertamos nuevo (primero se inserta y despues se descarta, como pide el enunciado:
+        //si ponerAlComienzo falla no se pierde el ultimo)
 
         resultado = ponerAlComienzo(&(c->l),info,c->tamClave + tamValor);
         free (info);
-        if (resultado== TODO_BIEN)
-            c->cantidad++;
+        if (resultado != TODO_BIEN)
+            return resultado;
 
-        return resultado;
+        c->cantidad++;
+
+        //si con el nuevo la cache se desborda hay que borrar el ultimo
+        if(c->cantidad > c->capacidad) //solo deberia poder pasarse por uno
+        {
+            sacarUltimoLista(&(c->l),NULL,0); // no nos interesa el dato, con 0 bytes no se copia nada
+            c->cantidad --;
+        }
+
+        return TODO_BIEN;
     }
     free( (*aux)->info );
     (*aux)->info = info;

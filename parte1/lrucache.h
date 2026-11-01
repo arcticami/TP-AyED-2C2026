@@ -25,7 +25,7 @@ typedef struct
 
 int CrearLruCache (tLruCache *c,unsigned capMax,unsigned tamClave, tCmpClave cmp); //pide el tam clave para ya dejarlo definido en LtuCache, es para agregar y obtener
 
-int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigned tamValor); //inserta al principio si no está, clave duplicada actualiza valor y mueve hacia adelante. el cmp lo hace con clave (para buscar). Si cache estaba llena, elimina ultimo
+int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigned tamValor); //inserta al principio si no está, clave duplicada actualiza valor y mueve hacia adelante. el cmp lo hace con clave (para buscar). Si con el nuevo se pasa de la capacidad, elimina ultimo
 
 int ObtenerLruCache (tLruCache *c,const void *clave, void * valor, unsigned tamValor);//busca en la cache, si lo encuentra lo mueve adelante, y devuelve el valor (en *valor), min tam y tam en cache.
 
