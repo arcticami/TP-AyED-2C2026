@@ -52,7 +52,6 @@ int AgregarLruCache (tLruCache *c,const void *clave, const void * valor, unsigne
     {
         //no estaba en cache
 
-
         //insertamos nuevo (primero se inserta y despues se descarta, como pide el enunciado:
         //si ponerAlComienzo falla no se pierde el ultimo)
 
