@@ -77,8 +77,8 @@ int sacarUltimoListaD(tListaD* p,void* pd, unsigned cantBytes)
         aux->ant->sig =NULL; //si tenia un anterior, le actualizo el sig del anterior a NULL
 
     //copio info en pd
-    memcpy(pd, aux->info, MINIMO(cantBytes,aux->tamInfo));
-
+    if (pd != NULL) //permite descartar el ultimo sin pedir el dato
+        memcpy(pd, aux->info, MINIMO(cantBytes,aux->tamInfo));
 
     if(aux->ant == NULL) //si era el unico nodo en lista
     {

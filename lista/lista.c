@@ -50,7 +50,9 @@ int sacarUltimoLista (tLista *p, void *d, unsigned cantBytes)
     while ((*p)->sig)
         p = &(*p)->sig;
 
-    memcpy(d, (*p)->info, MINIMO(cantBytes, (*p)->tamInfo));
+    if (d != NULL) //permite descartar el ultimo sin pedir el dato
+        memcpy(d, (*p)->info, MINIMO(cantBytes, (*p)->tamInfo));
+    
     free((*p)->info);
     free(*p);
     *p = NULL;
