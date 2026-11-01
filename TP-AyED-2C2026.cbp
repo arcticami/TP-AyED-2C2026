@@ -123,6 +123,8 @@
 		<Unit filename="parte3/lotes.c">
 			<Option compilerVar="CC" />
 			<Option target="Generador" />
+			<Option target="Sim_P1" />
+			<Option target="Sim_P2" />
 		</Unit>
 		<Unit filename="parte3/lotes.h" />
 		<Unit filename="parte3/simulador.c">

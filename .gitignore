@@ -56,3 +56,5 @@ dkms.conf
 *.depend
 bin/
 obj/
+*.bin
+reporte_parte*.txt
