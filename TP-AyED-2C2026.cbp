@@ -120,6 +120,11 @@
 			<Option compilerVar="CC" />
 			<Option target="Generador" />
 		</Unit>
+		<Unit filename="parte3/lotes.c">
+			<Option compilerVar="CC" />
+			<Option target="Generador" />
+		</Unit>
+		<Unit filename="parte3/lotes.h" />
 		<Unit filename="parte3/simulador.c">
 			<Option compilerVar="CC" />
 			<Option target="Sim_P1" />
