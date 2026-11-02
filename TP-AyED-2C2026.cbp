@@ -100,6 +100,11 @@
 			<Option target="Generador" />
 		</Unit>
 		<Unit filename="parte3/lotes.h" />
+		<Unit filename="parte3/simulaciones.c">
+			<Option compilerVar="CC" />
+			<Option target="Simulador" />
+		</Unit>
+		<Unit filename="parte3/simulaciones.h" />
 		<Unit filename="parte3/simulador.c">
 			<Option compilerVar="CC" />
 			<Option target="Simulador" />

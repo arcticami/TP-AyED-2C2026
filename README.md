@@ -8,7 +8,8 @@ TP LRU Cache - Algoritmos y Estructuras de Datos (3640), Com 01-1900, 2C 2026.
 - `arbol/` arbol binario de busqueda (indice de la Parte 2)
 - `parte1/` TDA `t_lru_cache` con lista simple: `crear_lrucache`, `agregar_lrucache`, `obtener_lrucache`, `borrar_lrucache`, `vaciar_lrucache`
 - `parte2/` TDA `t_lru_cache2` con lista doble + indice en arbol: las mismas primitivas con un 2 al final, mas `altura_indice_lrucache2`
-- `parte3/` simulador de Tweener (genera los lotes con una semilla y los corre sin cache, con la Parte 1 y con la Parte 2)
+- `parte3/` simulador de Tweener (genera los lotes con una semilla y los corre sin cache, con la Parte 1 y con la Parte 2): `simulador.c` tiene el `main`,
+  `simulaciones.h`/`simulaciones.c` las funciones de la simulacion y `lotes.h`/`lotes.c` el generador de lotes
 - `pruebas/` programas aparte, cada uno con su propio `main`: lote de pruebas de la cache y generador de un lote suelto
 
 La Parte 2 lleva un 2 al final de los nombres para que las dos versiones puedan estar en el mismo proyecto
