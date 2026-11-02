@@ -62,9 +62,11 @@ int alturaCacheSim(const tCacheSim *c);
 void vaciarCacheSim(tCacheSim *c);
 //funcion core de la simulacion
 int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r);
-
+//funcion q recibe la semilla y crea los lotes de posteos y los 3 tipos de usuarios
 int generarLotes(unsigned semilla);
+//arma la tabla comparativa del reporte por cada tipo de lote
 int simularLote(FILE *fpPost, const char *tipo, const int *caps, int cantCaps, FILE *salidas[], int cantSalidas);
+//funciones de impresion
 void mostrarTitulo(FILE *f, const char *tipo);
 void mostrarParte(FILE *f, int parte);
 void mostrarEncabezado(FILE *f);
