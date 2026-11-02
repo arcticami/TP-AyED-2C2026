@@ -60,7 +60,9 @@ int obtenerCacheSim(tCacheSim *c, int id, tPosteo *p);
 int agregarCacheSim(tCacheSim *c, int id, const tPosteo *p);
 int alturaCacheSim(const tCacheSim *c);
 void vaciarCacheSim(tCacheSim *c);
+//funcion core de la simulacion
 int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r);
+
 int generarLotes(unsigned semilla);
 int simularLote(FILE *fpPost, const char *tipo, const int *caps, int cantCaps, FILE *salidas[], int cantSalidas);
 void mostrarTitulo(FILE *f, const char *tipo);
@@ -137,8 +139,12 @@ int main(int argc, char *argv[])
         fprintf(salidas[i], "tiempo   : promedio de %d corridas; capacidad 0 = sin cache\n", REPETICIONES);
     }
 
-    for (i = 0; ok && i < CANT_TIPOS_LOTE; i++)
+    i = 0;
+    while (ok && i < CANT_TIPOS_LOTE)
+    {
         ok = simularLote(fpPost, TIPOS_LOTE[i], caps, cantCaps, salidas, cantSalidas);
+        i++;
+    }
 
     fclose(fpPost);
     if (fpRep != NULL)
