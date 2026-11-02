@@ -2,22 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tweener.h"
+#include "lotes.h"
 
 /*
- * Generador de lotes de prueba para el simulador de Tweener.
- *
- * Uso:  generador <concentrado|disperso|ordenado> <semilla> [cantUsuarios]
- *
- * Genera:
- *   datos/posteos.bin            CANT_POSTEOS registros {id, texto}; el id es el numero de registro
- *   datos/usuarios_<tipo>.bin    cantUsuarios registros {usuario, feed[LARGO_FEED]}
- *
  * La misma semilla genera siempre el mismo lote (el ordenado ni siquiera usa la semilla).
  * El texto de los posteos no depende de la semilla: posteos.bin es igual para todos los lotes.
- * La carpeta datos/ tiene que existir.
  */
 
-#define RUTA_POSTEOS    "datos/posteos.bin"
 #define SEMILLA_TEXTO   12345
 
 #define VIRALES         50      //concentrado: cantidad de posteos "virales"
@@ -27,61 +18,34 @@
 #define ALFABETO        "abcdefghijklmnopqrstuvwxyz "
 #define LARGO_ALFABETO  27
 
-int aleatorio(unsigned *estado, int tope);
-int idRepetido(const int *v, int cant, int id);
-void armarPosteo(tPosteo *p, int id, unsigned *estado);
-int generarPosteos(void);
-void elegirVirales(int *virales, unsigned *estado);
-void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado);
-void armarFeedDisperso(int *feed, unsigned *estado);
-void armarFeedOrdenado(int *feed, unsigned k);
-int generarUsuarios(const char *tipo, unsigned semilla, unsigned cantUsuarios);
+const char *const TIPOS_LOTE[CANT_TIPOS_LOTE] = { "concentrado", "disperso", "ordenado" };
 
-int main(int argc, char *argv[])
+static int aleatorio(unsigned *estado, int tope);
+static int idRepetido(const int *v, int cant, int id);
+static void armarPosteo(tPosteo *p, int id, unsigned *estado);
+static void elegirVirales(int *virales, unsigned *estado);
+static void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado);
+static void armarFeedDisperso(int *feed, unsigned *estado);
+static void armarFeedOrdenado(int *feed, unsigned k);
+
+int tipoLoteValido(const char *tipo)
 {
-    unsigned semilla;
-    unsigned cantUsuarios = CANT_USUARIOS;
+    int i = 0;
 
-    if (argc < 3 || argc > 4 ||
-        (strcmp(argv[1], "concentrado") != 0 && strcmp(argv[1], "disperso") != 0 && strcmp(argv[1], "ordenado") != 0))
-    {
-        printf("Uso: %s <concentrado|disperso|ordenado> <semilla> [cantUsuarios]\n", argv[0]);
-        return 1;
-    }
+    while (i < CANT_TIPOS_LOTE && strcmp(tipo, TIPOS_LOTE[i]) != 0)
+        i++;
 
-    semilla = atoi(argv[2]);
-    if (semilla == 0)
-        semilla = 1; //el generador de numeros aleatorios no puede arrancar en 0
+    return i < CANT_TIPOS_LOTE;
+}
 
-    if (argc == 4)
-        cantUsuarios = atoi(argv[3]);
-
-    if (cantUsuarios < MIN_USUARIOS)
-    {
-        printf("Error: el enunciado pide no menos de %d usuarios\n", MIN_USUARIOS);
-        return 1;
-    }
-
-    if (!generarPosteos())
-    {
-        printf("Error: no se pudo escribir %s (existe la carpeta datos/?)\n", RUTA_POSTEOS);
-        return 1;
-    }
-    printf("Generado %s: %d posteos de %d bytes\n", RUTA_POSTEOS, CANT_POSTEOS, (int)sizeof(tPosteo));
-
-    if (!generarUsuarios(argv[1], semilla, cantUsuarios))
-    {
-        printf("Error: no se pudo escribir datos/usuarios_%s.bin\n", argv[1]);
-        return 1;
-    }
-    printf("Generado datos/usuarios_%s.bin: %u usuarios, feed de %d, semilla %u\n", argv[1], cantUsuarios, LARGO_FEED, semilla);
-
-    return 0;
+void rutaUsuarios(char *ruta, const char *tipo)
+{
+    snprintf(ruta, TAM_RUTA, "usuarios_%s.bin", tipo);
 }
 
 //numero en [0, tope). Es un xorshift de 32 bits (unsigned tiene 32 bits en MinGW); no se usa rand()
 //porque en MinGW llega solo a 32767 y no alcanza para cubrir los ids
-int aleatorio(unsigned *estado, int tope)
+static int aleatorio(unsigned *estado, int tope)
 {
     unsigned x = *estado;
 
@@ -94,7 +58,7 @@ int aleatorio(unsigned *estado, int tope)
 }
 
 //1 si id ya esta entre las primeras cant posiciones de v
-int idRepetido(const int *v, int cant, int id)
+static int idRepetido(const int *v, int cant, int id)
 {
     int i = 0;
 
@@ -109,7 +73,7 @@ int idRepetido(const int *v, int cant, int id)
 /* -------------------------------------------------------------------------- */
 
 //el texto es relleno con el id adelante ("Posteo 123: ..."), solo sirve para poder revisar el archivo a ojo
-void armarPosteo(tPosteo *p, int id, unsigned *estado)
+static void armarPosteo(tPosteo *p, int id, unsigned *estado)
 {
     char cab[32];
     int n, i = 0;
@@ -129,14 +93,14 @@ void armarPosteo(tPosteo *p, int id, unsigned *estado)
     }
 }
 
-int generarPosteos(void)
+int generarPosteos(const char *ruta)
 {
     FILE *pf;
     tPosteo p;
     unsigned estado = SEMILLA_TEXTO;
     int id = 0, ok = 1;
 
-    if ((pf = fopen(RUTA_POSTEOS, "wb")) == NULL)
+    if ((pf = fopen(ruta, "wb")) == NULL)
         return 0;
 
     while (ok && id < CANT_POSTEOS)
@@ -155,7 +119,7 @@ int generarPosteos(void)
 /* -------------------------------------------------------------------------- */
 
 //elige VIRALES ids distintos entre si
-void elegirVirales(int *virales, unsigned *estado)
+static void elegirVirales(int *virales, unsigned *estado)
 {
     int i = 0;
 
@@ -168,7 +132,7 @@ void elegirVirales(int *virales, unsigned *estado)
 }
 
 //cada lugar del feed es un viral con probabilidad PORC_VIRAL %, sino un posteo cualquiera; sin repetir ids dentro del feed
-void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado)
+static void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado)
 {
     int j = 0, id;
 
@@ -188,7 +152,7 @@ void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado)
 }
 
 //posteos cualquiera de toda la base, sin repetir ids dentro del feed
-void armarFeedDisperso(int *feed, unsigned *estado)
+static void armarFeedDisperso(int *feed, unsigned *estado)
 {
     int j = 0, id;
 
@@ -206,7 +170,7 @@ void armarFeedDisperso(int *feed, unsigned *estado)
 
 //ventana de ids consecutivos que avanza PASO_VENTANA por usuario (se superpone con la del usuario anterior);
 //si llega al final de la base vuelve a empezar, asi cada feed siempre queda creciente
-void armarFeedOrdenado(int *feed, unsigned k)
+static void armarFeedOrdenado(int *feed, unsigned k)
 {
     int base = k * PASO_VENTANA % (CANT_POSTEOS - LARGO_FEED + 1);
     int j = 0;
@@ -218,18 +182,16 @@ void armarFeedOrdenado(int *feed, unsigned k)
     }
 }
 
-int generarUsuarios(const char *tipo, unsigned semilla, unsigned cantUsuarios)
+int generarUsuarios(const char *ruta, const char *tipo, unsigned semilla, unsigned cantUsuarios)
 {
-    char ruta[64];
     FILE *pf;
     tUsuario u;
     int virales[VIRALES];
-    unsigned estado = semilla;
+    unsigned estado = semilla ? semilla : 1; //el generador de numeros aleatorios no puede arrancar en 0
     unsigned k = 0;
     int ok = 1;
 
-    sprintf(ruta, "datos/usuarios_%s.bin", tipo);
-    if ((pf = fopen(ruta, "wb")) == NULL)
+    if (!tipoLoteValido(tipo) || (pf = fopen(ruta, "wb")) == NULL)
         return 0;
 
     if (strcmp(tipo, "concentrado") == 0)

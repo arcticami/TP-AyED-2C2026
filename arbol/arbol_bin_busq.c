@@ -38,15 +38,15 @@ int insertarEnArbol(tArbol *pa, const void *d, unsigned tam, int (*cmp)(const vo
     return TODO_BIEN;
 }
 
-unsigned alturaArbol(const tArbol * p)
+unsigned alturaArbol(const tArbol *pa)
 {
     unsigned hi, hd;
 
-    if(!*p)
+    if (*pa == NULL)
         return 0;
 
-    hi = alturaArbol(&(*p)->izq);
-    hd = alturaArbol(&(*p)->der);
+    hi = alturaArbol(&(*pa)->izq);
+    hd = alturaArbol(&(*pa)->der);
 
     return (hi > hd ? hi : hd) + 1;
 }
@@ -56,17 +56,16 @@ tArbol *buscarNodoArbol(tArbol *pa, const void *d, int (*cmp)(const void *, cons
     int rc;
 
     while (*pa && (rc = cmp(d, (*pa)->info)) != 0)
-        pa = (rc < 0) ? &(*pa)->izq : &(*pa)->der;
+        pa = rc < 0 ? &(*pa)->izq : &(*pa)->der;
 
     return *pa ? pa : NULL;
 }
 
-void vaciarArbol(tArbol *pa) //pensar si iterativa o recursiva
+//recursiva, en posorden: primero se liberan los dos subarboles y despues el nodo
+void vaciarArbol(tArbol *pa)
 {
     if (*pa == NULL)
         return;
-
-    //recorrido posorden
 
     vaciarArbol(&(*pa)->izq);
     vaciarArbol(&(*pa)->der);

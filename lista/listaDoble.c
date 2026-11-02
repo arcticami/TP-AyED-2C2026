@@ -2,149 +2,126 @@
 
 #define MINIMO(X, Y) ((X) <= (Y) ? (X) : (Y))
 
-//Lista doblemente enlazada, con puntero al primero y al ultimo
-
-
-
-void crearListaD(tListaD* p)
+void crearListaD(tListaD *p)
 {
-    p->pri=NULL;
-    p->ult=NULL;
-}
-void vaciarListaD(tListaD* p)
-{
-    tNodoD* aux, *act= p->pri;
-
-        while(act)
-        {
-            aux=act->sig;
-            free(act->info);
-            free(act);
-            act=aux;
-        }
-        p->pri=NULL;
-        p->ult=NULL;
+    p->pri = NULL;
+    p->ult = NULL;
 }
 
-int listaVaciaD(tListaD* p)
+void vaciarListaD(tListaD *p)
 {
-    return p->pri==NULL;
+    tNodoD *aux, *act = p->pri;
+
+    while (act)
+    {
+        aux = act->sig;
+        free(act->info);
+        free(act);
+        act = aux;
+    }
+
+    p->pri = NULL;
+    p->ult = NULL;
 }
 
-
-int ponerPrimeroListaD(tListaD* p, const void* pd, unsigned cantBytes)
+int listaVaciaD(const tListaD *p)
 {
-    tNodoD * aux;
+    return p->pri == NULL;
+}
 
-    ///////////////////////////////////////////
-    //reservo nodo
-    if ((aux = (tNodoD*)malloc(sizeof(tNodoD))) == NULL ||
+int ponerPrimeroListaD(tListaD *p, const void *pd, unsigned cantBytes)
+{
+    tNodoD *aux;
+
+    if ((aux = (tNodoD *)malloc(sizeof(tNodoD))) == NULL ||
         (aux->info = malloc(cantBytes)) == NULL)
     {
         free(aux);
         return SIN_MEM;
     }
 
-    //copio info
     memcpy(aux->info, pd, cantBytes);
-    aux->tamInfo=cantBytes;
-    ///////////////////////////////////////////
+    aux->tamInfo = cantBytes;
 
-    //reengancho
-    aux->sig= p->pri; //el siguiente del que inserto es el primero actual
-    aux->ant=NULL; //el ant del que inserto es nulo (inserto primero)
+    aux->sig = p->pri; //el siguiente del nuevo es el que estaba primero
+    aux->ant = NULL;   //y no tiene anterior porque va primero
 
-    if( p->pri)
-        p->pri->ant=aux; //si la lista no estaba vacia, el actualizo el anterior del que estaba primero
+    if (p->pri)
+        p->pri->ant = aux; //si la lista no estaba vacia, el que estaba primero ahora tiene anterior
     else
-        p->ult = aux; //si lista estaba vacia, primero es tambien ultimo
+        p->ult = aux; //si estaba vacia, el nuevo tambien es el ultimo
 
-    p->pri=aux; //actualizo el primero en listaD
+    p->pri = aux;
 
     return TODO_BIEN;
 }
 
-int sacarUltimoListaD(tListaD* p,void* pd, unsigned cantBytes)
+int sacarUltimoListaD(tListaD *p, void *pd, unsigned cantBytes)
 {
-    tNodoD * aux;
+    tNodoD *aux;
 
-    if(p->ult==NULL)
+    if (p->ult == NULL)
         return NO_EXISTE;
 
     aux = p->ult;
 
-    if(aux->ant)
-        aux->ant->sig =NULL; //si tenia un anterior, le actualizo el sig del anterior a NULL
+    if (pd != NULL) //permite descartar el ultimo sin pedir el dato
+        memcpy(pd, aux->info, MINIMO(cantBytes, aux->tamInfo));
 
-    //copio info en pd
-    memcpy(pd, aux->info, MINIMO(cantBytes,aux->tamInfo));
-
-
-    if(aux->ant == NULL) //si era el unico nodo en lista
+    if (aux->ant)
+    {
+        aux->ant->sig = NULL; //el anterior pasa a ser el ultimo
+        p->ult = aux->ant;
+    }
+    else //era el unico nodo
     {
         p->pri = NULL;
         p->ult = NULL;
     }
-    else    //actualizo ultimo
-        p->ult=aux->ant;
 
-
-    //libero memoria
     free(aux->info);
     free(aux);
 
     return TODO_BIEN;
 }
 
-void llevarAPrimeroListaD (tListaD *p, tNodoD *mover)
+void llevarAPrimeroListaD(tListaD *p, tNodoD *mover)
 {
-    //si el nodo ya es el primero ya esta en su lugar y salimos sin tocar nada
-    if(p == NULL || mover == NULL || p->pri == mover)
+    //si ya es el primero esta en su lugar y no hay que tocar nada
+    if (p == NULL || mover == NULL || p->pri == mover)
         return;
 
-    // desenganchar
+    //desenganchar (no es el primero, asi que seguro tiene anterior)
+    mover->ant->sig = mover->sig;
 
-        //anterior
-    if(mover->ant)//si no es el primero
-        mover->ant->sig = mover->sig;
-    else
-        p->pri = mover->sig;//si es el primero
-
-        //siguiente
     if (mover->sig) //si no es el ultimo
         mover->sig->ant = mover->ant;
     else
-        p->ult = mover->ant; //si es el ultimo
+        p->ult = mover->ant;
 
-    // engancharlo como primero
+    //engancharlo como primero
     mover->ant = NULL;
     mover->sig = p->pri;
     p->pri->ant = mover;
     p->pri = mover;
 }
 
-void eliminarNodoListaD (tListaD *p, tNodoD *elim)
+void eliminarNodoListaD(tListaD *p, tNodoD *elim)
 {
-    if(p == NULL || elim == NULL)
+    if (p == NULL || elim == NULL)
         return;
 
-    // desenganchar
-
-        //anterior
-    if(elim->ant)//si no es el primero
+    //desenganchar
+    if (elim->ant) //si no es el primero
         elim->ant->sig = elim->sig;
     else
         p->pri = elim->sig;
 
-        //siguiente
     if (elim->sig) //si no es el ultimo
         elim->sig->ant = elim->ant;
     else
-        p->ult = elim->ant; //si es el ultimo
+        p->ult = elim->ant;
 
-
-    //liberar nodo
     free(elim->info);
-    free (elim);
-
+    free(elim);
 }

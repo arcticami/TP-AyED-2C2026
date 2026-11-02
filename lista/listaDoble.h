@@ -5,46 +5,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+//Lista doblemente enlazada generica, con puntero al primero y al ultimo (la usa la LRU Cache de la Parte 2)
+
 #define SIN_MEM 1
 #define CLA_DUP 2
 #define NO_EXISTE 3
 #define ERROR_PARAMETROS 4
 #define TODO_BIEN 0
 
-//Lista doblemente enlazada, con puntero al primero y al ultimo
-
-typedef struct sNodo
+typedef struct sNodoD
 {
     void *info;
     unsigned tamInfo;
-    struct sNodo *ant,*sig;
+    struct sNodoD *ant, *sig;
 } tNodoD;
 
 typedef struct
 {
-    tNodoD * pri;
-    tNodoD * ult;
+    tNodoD *pri;
+    tNodoD *ult;
 } tListaD;
 
+void crearListaD(tListaD *p);
+void vaciarListaD(tListaD *p);
+int listaVaciaD(const tListaD *p);
 
-void crearListaD(tListaD* p);
-void vaciarListaD(tListaD* p);
-int listaVaciaD(tListaD* p);
+int ponerPrimeroListaD(tListaD *p, const void *pd, unsigned cantBytes);
+int sacarUltimoListaD(tListaD *p, void *pd, unsigned cantBytes); //con pd en NULL descarta el ultimo sin copiarlo
 
-int ponerPrimeroListaD(tListaD* p, const void* pd, unsigned cantBytes);
-int sacarUltimoListaD(tListaD* p,void* pd, unsigned cantBytes);
-
-//funciones nuevas especificas para cache
-void llevarAPrimeroListaD (tListaD *p, tNodoD *mover); //se puede con Nodo ya que si sabes cual es ant y sig
-void eliminarNodoListaD (tListaD *p, tNodoD *elim);
-
-/*
-void mostrarIzqADerListaD(tListaD* p);
-void mostrarDerAIzqListaD(tListaD* p);
-
-int sacarPorClaveListaD(tListaD* p, void* pd, unsigned cantBytes,int (*Cmp)(const void*, const void*));
-
-void invertirListaD(tListaD *p);
-*/
+//funciones especificas para la cache: reciben el nodo directamente, porque con ant y sig no hace falta recorrer
+void llevarAPrimeroListaD(tListaD *p, tNodoD *mover);
+void eliminarNodoListaD(tListaD *p, tNodoD *elim);
 
 #endif // LISTADOBLE_H_INCLUDED

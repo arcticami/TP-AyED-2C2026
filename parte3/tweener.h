@@ -1,7 +1,7 @@
 #ifndef TWEENER_H_INCLUDED
 #define TWEENER_H_INCLUDED
 
-//Definiciones compartidas por generador.c y simulador.c: los dos tienen que ver
+//Definiciones compartidas por lotes.c (que escribe los archivos) y simulador.c (que los lee): los dos tienen que ver
 //exactamente los mismos registros, por eso viven en un solo lugar.
 
 #define TAM_TEXTO       141     //char[141] segun el enunciado (el texto usa hasta TAM_TEXTO - 2 caracteres)
