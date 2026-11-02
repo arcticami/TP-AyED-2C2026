@@ -17,7 +17,7 @@
  * Los datos de los posteos no se muestran ni se guardan pq son solo para medir.
  */
 
-const int CAPACIDADES_DEFECTO[] = { 0, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000 };
+const int CAPACIDADES_DEFECTO[] = { 0, 10, 50, 100, 500, 1000, 5000 };
 
 int main(int argc, char *argv[])
 {
