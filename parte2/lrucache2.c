@@ -83,7 +83,7 @@ int agregar_lrucache2(t_lru_cache2 *c, const void *clave, const void *valor, uns
     if (c == NULL || clave == NULL || (valor == NULL && tamValor > 0))
         return ERROR_PARAMETROS;
 
-    //concatenamos clave y valor
+    //armo bloque clave valor
     tamInfo = c->tamClave + tamValor;
     if ((info = malloc(tamInfo)) == NULL)
         return SIN_MEM;
@@ -92,24 +92,30 @@ int agregar_lrucache2(t_lru_cache2 *c, const void *clave, const void *valor, uns
     if (tamValor > 0)
         memcpy((char *)info + c->tamClave, valor, tamValor);
 
-    //la busqueda se hace en el arbol
+    //busco la clave en el arbol, si esta:
     if ((enlace = buscarNodoArbol(&c->indice, clave, c->cmp)) != NULL)
     {
-        //la clave ya existia: reemplazamos el dato en el MISMO nodo de la lista, asi el indice sigue apuntando bien
+        //si el enlace es !null entonces la clave está en el arbol y enlace ahora contiene la ubicacion en la lista del nodo
+        //traigo los datos del nodo
         nodo = nodoDeEntradaIndice(enlace, c->tamClave);
+        //libero la info vieja q tenia en la lista
         free(nodo->info);
+        //actualizo la info
         nodo->info = info;
+        //actualizo el tam
         nodo->tamInfo = tamInfo;
+        //lo muevo al principio
         llevarAPrimeroListaD(&c->lista, nodo);
         return TODO_BIEN;
     }
 
-    //clave nueva: primero a la lista (queda como primero)
-    rc = ponerPrimeroListaD(&c->lista, info, tamInfo); //copia el info, por eso liberamos el nuestro
+    //si no estaba la clave, es un nodo nuevo, mando el nodo a poner primero y este copia los datos
+    rc = ponerPrimeroListaD(&c->lista, info, tamInfo);
+    //libero el nodo pq se hizo una copia en la primitiva
     free(info);
     if (rc != TODO_BIEN)
         return rc;
-
+    //agarro el primer nodo
     nodo = c->lista.pri;
 
     //despues al indice, referenciando ese nodo
@@ -119,16 +125,18 @@ int agregar_lrucache2(t_lru_cache2 *c, const void *clave, const void *valor, uns
         eliminarNodoListaD(&c->lista, nodo); //deshacemos para que las dos estructuras sigan consistentes
         return SIN_MEM;
     }
-
+    //armo el bloquecito para poner en el arbol
     armarEntradaIndice(entrada, clave, c->tamClave, nodo);
-    rc = insertarEnArbol(&c->indice, entrada, tamEntrada, c->cmp); //copia la entrada
+    //inserto el bloque en el arbol y uso rc como indicador para ver si salio todo bien
+    rc = insertarEnArbol(&c->indice, entrada, tamEntrada, c->cmp);
+    //libero el bloque pq se inserto una copia en el arbol
     free(entrada);
     if (rc != TODO_BIEN)
     {
         eliminarNodoListaD(&c->lista, nodo);
         return rc;
     }
-
+    //actualizo la cantidad
     c->cantidad++;
 
     //si nos pasamos de la capacidad se descarta el menos usado (con el nuevo ya insertado no se pierde nada si algo fallo antes)
@@ -142,18 +150,19 @@ int obtener_lrucache2(t_lru_cache2 *c, const void *clave, void *valor, unsigned 
 {
     tArbol *enlace;
     tNodoD *nodo;
-
+    //check parametros
     if (c == NULL || clave == NULL || (valor == NULL && tamValor > 0))
         return ERROR_PARAMETROS;
-
+    //busco el bloquecito en el arbol
     if ((enlace = buscarNodoArbol(&c->indice, clave, c->cmp)) == NULL)
         return NO_EXISTE;
-
+    //a partir de la ficha o bloquecito q tengo en el arbol,v oy a la lista a buscar el nodo
     nodo = nodoDeEntradaIndice(enlace, c->tamClave);
-
+    //esta funcion puede usarse tambien solo para saber si el nodo esta en al lista sin la necesidad de devolver el dato
+    //entonces si quiero devolver el dato, pregunto si me pidieron q el valor sea >0 y lo copio
     if (tamValor > 0)
         memcpy(valor, (char *)nodo->info + c->tamClave, MINIMO(tamValor, nodo->tamInfo - c->tamClave));
-
+    //muevo el nodo al principio
     llevarAPrimeroListaD(&c->lista, nodo); //el indice no cambia: el nodo sigue en la misma direccion
 
     return TODO_BIEN;
@@ -163,15 +172,15 @@ int borrar_lrucache2(t_lru_cache2 *c, const void *clave)
 {
     tArbol *enlace;
     tNodoD *nodo;
-
+    //chack parametros
     if (c == NULL || clave == NULL)
         return ERROR_PARAMETROS;
-
+    //busco si ta en el arbol
     if ((enlace = buscarNodoArbol(&c->indice, clave, c->cmp)) == NULL)
         return NO_EXISTE;
-
+    //extraigo el dato de la lista
     nodo = nodoDeEntradaIndice(enlace, c->tamClave); //guardamos el puntero ANTES de eliminar la entrada (eliminarNodoArbol libera su info)
-
+    //lo borro del arbol y de la lista y actualizo la cantidad
     eliminarNodoArbol(enlace);
     eliminarNodoListaD(&c->lista, nodo);
     c->cantidad--;

@@ -61,7 +61,6 @@ unsigned long g_comparaciones = 0;
 
 int cmpId(const void *a, const void *b);
 int leerPosteo(FILE *fp, int id, tPosteo *p);
-void calentarArchivo(FILE *fp);
 int crearCacheSim(tCacheSim *c, int parte, unsigned capacidad);
 int obtenerCacheSim(tCacheSim *c, int id, tPosteo *p);
 int agregarCacheSim(tCacheSim *c, int id, const tPosteo *p);
@@ -122,6 +121,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    //esto se hace para q la comparacion del sin cache sea justa, como al tener un buffer se traen varios registros de golpe
+    //dejarlo haria q parezca q el sin cache es mas rapido pq no se tiene en cuenta la cache propia de C
+    //basicamente se le indica al SO q para el archivo fpPost no haga un buffer y por cada llamada vaya directo a él a buscar los datos
     if (SIN_BUFFER)
         setvbuf(fpPost, NULL, _IONBF, 0);
 
@@ -140,8 +142,6 @@ int main(int argc, char *argv[])
         fprintf(salidas[i], "usuarios : %d por lote (feed de %d posteos)\n", CANT_USUARIOS, LARGO_FEED);
         fprintf(salidas[i], "tiempo   : promedio de %d corridas; capacidad 0 = sin cache\n", REPETICIONES);
     }
-
-    calentarArchivo(fpPost); //asi la primera corrida no paga la lectura "en frio" del archivo
 
     for (i = 0; ok && i < CANT_TIPOS_LOTE; i++)
         ok = simularLote(fpPost, TIPOS_LOTE[i], caps, cantCaps, salidas, cantSalidas);
@@ -241,16 +241,6 @@ int leerPosteo(FILE *fp, int id, tPosteo *p)
         return 0;
 
     return fread(p, sizeof(tPosteo), 1, fp) == 1;
-}
-
-//lee el archivo de posteos completo una vez, sin medir nada, para que el sistema operativo lo tenga en memoria
-void calentarArchivo(FILE *fp)
-{
-    tPosteo p;
-
-    rewind(fp);
-    while (fread(&p, sizeof(tPosteo), 1, fp) == 1)
-        ;
 }
 
 /* -------------------------------------------------------------------------- */
