@@ -57,12 +57,12 @@ void __wrap_free(void *p)
     __real_free(p);
 }
 
-static long vivos(void)
+long vivos(void)
 {
     return g_vivos - g_base;
 }
 
-static void armarFalla(long n)
+void armarFalla(long n)
 {
     g_cont = 0;
     g_falla_en = n;
@@ -84,14 +84,14 @@ static int g_fallas = 0;
         } \
     } while (0)
 
-static void titulo(const char *t)
+void titulo(const char *t)
 {
     printf("[%s]\n", t);
 }
 
 /* ------------------------------------------------------------------ helpers */
 
-static int cmpInt(const void *a, const void *b)
+int cmpInt(const void *a, const void *b)
 {
     int x = *(const int *)a;
     int y = *(const int *)b;
@@ -99,29 +99,29 @@ static int cmpInt(const void *a, const void *b)
     return (x > y) - (x < y);
 }
 
-static int cmpCad(const void *a, const void *b)
+int cmpCad(const void *a, const void *b)
 {
     return strcmp((const char *)a, (const char *)b);
 }
 
-static int agregarInt(t_lru_cache *c, int k, int v)
+int agregarInt(t_lru_cache *c, int k, int v)
 {
     return agregar_lrucache(c, &k, &v, sizeof(v));
 }
 
 /* devuelve el codigo de Obtener; el valor queda en *v (si lo encontro) */
-static int obtenerInt(t_lru_cache *c, int k, int *v)
+int obtenerInt(t_lru_cache *c, int k, int *v)
 {
     return obtener_lrucache(c, &k, v, sizeof(*v));
 }
 
-static int borrarInt(t_lru_cache *c, int k)
+int borrarInt(t_lru_cache *c, int k)
 {
     return borrar_lrucache(c, &k);
 }
 
 /* 1 si esta. OJO: si esta, lo lleva al principio (efecto de Obtener) */
-static int estaInt(t_lru_cache *c, int k)
+int estaInt(t_lru_cache *c, int k)
 {
     int v;
 
@@ -130,7 +130,7 @@ static int estaInt(t_lru_cache *c, int k)
 
 /* ------------------------------------------------------------------ pruebas */
 
-static void testParametros(void)
+void testParametros(void)
 {
     t_lru_cache c;
 
@@ -142,7 +142,7 @@ static void testParametros(void)
     vaciar_lrucache(&c);
 }
 
-static void testVacia(void)
+void testVacia(void)
 {
     t_lru_cache c;
     int v = 123;
@@ -156,7 +156,7 @@ static void testVacia(void)
     CHECK(vivos() == 0, "vaciar una cache vacia deja %ld bloques", vivos());
 }
 
-static void testBasico(void)
+void testBasico(void)
 {
     t_lru_cache c;
     int v = 0;
@@ -174,7 +174,7 @@ static void testBasico(void)
     CHECK(vivos() == 0, "fuga tras vaciar: %ld", vivos());
 }
 
-static void testDesborde(void)
+void testDesborde(void)
 {
     t_lru_cache c;
 
@@ -192,7 +192,7 @@ static void testDesborde(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testObtenerRefresca(void)
+void testObtenerRefresca(void)
 {
     t_lru_cache c;
     int v;
@@ -211,7 +211,7 @@ static void testObtenerRefresca(void)
     vaciar_lrucache(&c);
 }
 
-static void testObtenerMiss(void)
+void testObtenerMiss(void)
 {
     t_lru_cache c;
     int v;
@@ -227,7 +227,7 @@ static void testObtenerMiss(void)
     vaciar_lrucache(&c);
 }
 
-static void testReemplazo(void)
+void testReemplazo(void)
 {
     t_lru_cache c;
     int v = 0;
@@ -245,7 +245,7 @@ static void testReemplazo(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testReemplazoNoCrece(void)
+void testReemplazoNoCrece(void)
 {
     t_lru_cache c;
     int i;
@@ -262,7 +262,7 @@ static void testReemplazoNoCrece(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testBorrar(void)
+void testBorrar(void)
 {
     t_lru_cache c;
 
@@ -284,7 +284,7 @@ static void testBorrar(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testBorrarLiberaLugar(void)
+void testBorrarLiberaLugar(void)
 {
     t_lru_cache c;
 
@@ -301,7 +301,7 @@ static void testBorrarLiberaLugar(void)
     vaciar_lrucache(&c);
 }
 
-static void testCapacidadUno(void)
+void testCapacidadUno(void)
 {
     t_lru_cache c;
     int v = 0;
@@ -320,7 +320,7 @@ static void testCapacidadUno(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testVaciarReutilizar(void)
+void testVaciarReutilizar(void)
 {
     t_lru_cache c;
     int i, v = 0;
@@ -341,7 +341,7 @@ static void testVaciarReutilizar(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testValoresDeTamanioVariable(void)
+void testValoresDeTamanioVariable(void)
 {
     t_lru_cache c;
     int k = 1;
@@ -399,7 +399,7 @@ typedef struct
     char tipo;
 } tClaveComp;
 
-static int cmpComp(const void *a, const void *b)
+int cmpComp(const void *a, const void *b)
 {
     const tClaveComp *x = (const tClaveComp *)a;
     const tClaveComp *y = (const tClaveComp *)b;
@@ -409,7 +409,7 @@ static int cmpComp(const void *a, const void *b)
     return (x->tipo > y->tipo) - (x->tipo < y->tipo);
 }
 
-static void testClavesDeOtrosTipos(void)
+void testClavesDeOtrosTipos(void)
 {
     t_lru_cache c;
     char k1[16] = "ana";
@@ -444,7 +444,7 @@ static void testClavesDeOtrosTipos(void)
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
-static void testSinMemoria(void)
+void testSinMemoria(void)
 {
     t_lru_cache c;
     long n;
@@ -482,7 +482,7 @@ typedef struct
     int cap;
 } tRef;
 
-static int refBuscar(const tRef *r, int k)
+int refBuscar(const tRef *r, int k)
 {
     int i = 0;
 
@@ -491,7 +491,7 @@ static int refBuscar(const tRef *r, int k)
     return i < r->n ? i : -1;
 }
 
-static void refAlFrente(tRef *r, int i)
+void refAlFrente(tRef *r, int i)
 {
     int k = r->k[i];
     int v = r->v[i];
@@ -506,7 +506,7 @@ static void refAlFrente(tRef *r, int i)
     r->v[0] = v;
 }
 
-static void refPut(tRef *r, int k, int v)
+void refPut(tRef *r, int k, int v)
 {
     int i = refBuscar(r, k);
 
@@ -524,7 +524,7 @@ static void refPut(tRef *r, int k, int v)
     refAlFrente(r, r->n - 1);
 }
 
-static int refGet(tRef *r, int k, int *v)
+int refGet(tRef *r, int k, int *v)
 {
     int i = refBuscar(r, k);
 
@@ -535,7 +535,7 @@ static int refGet(tRef *r, int k, int *v)
     return 1;
 }
 
-static int refDel(tRef *r, int k)
+int refDel(tRef *r, int k)
 {
     int i = refBuscar(r, k);
 
@@ -553,7 +553,7 @@ static int refDel(tRef *r, int k)
 
 static unsigned long long g_semilla = 88172645463325252ULL;
 
-static unsigned azar(void)
+unsigned azar(void)
 {
     g_semilla ^= g_semilla << 13;
     g_semilla ^= g_semilla >> 7;
@@ -561,7 +561,7 @@ static unsigned azar(void)
     return (unsigned)(g_semilla >> 8);
 }
 
-static void testContraModelo(int cap, int rango, int ops)
+void testContraModelo(int cap, int rango, int ops)
 {
     t_lru_cache c;
     tRef ref;

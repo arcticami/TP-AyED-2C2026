@@ -24,7 +24,6 @@ typedef struct
     int aciertos;
     int fallos;
     int lecturas;               //lecturas hechas al archivo de posteos
-    unsigned long comparaciones;
     int errores;                //posteos devueltos con un id distinto al pedido (debe dar 0)
     int altura;                 //altura del arbol indice; -1 si no aplica (Parte 1 o sin cache)
 } tResultado;

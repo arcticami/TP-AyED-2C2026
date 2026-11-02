@@ -6,19 +6,19 @@
 /*                            FUNCIONES AUXILIARES                            */
 /* -------------------------------------------------------------------------- */
 
-static void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo);
-static tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave);
-static void descartarUltimo(t_lru_cache2 *c);
+void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo);
+tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave);
+void descartarUltimo(t_lru_cache2 *c);
 
 //arma la entrada del indice: la clave y a continuacion el puntero al nodo de la lista
-static void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo)
+void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo)
 {
     memcpy(buf, clave, tamClave);
     memcpy((char *)buf + tamClave, &nodo, sizeof(tNodoD *)); //con memcpy porque el puntero puede quedar desalineado
 }
 
 //devuelve el nodo de la lista al que apunta una entrada del indice
-static tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
+tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
 {
     tNodoD *nodo;
 
@@ -27,7 +27,7 @@ static tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
 }
 
 //saca el ultimo de la lista y su entrada del indice
-static void descartarUltimo(t_lru_cache2 *c)
+void descartarUltimo(t_lru_cache2 *c)
 {
     tNodoD *ult = c->lista.ult;
     tArbol *enlace;

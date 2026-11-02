@@ -238,9 +238,9 @@ void mostrarParte(FILE *f, int parte)
 
 void mostrarEncabezado(FILE *f)
 {
-    fprintf(f, "%7s %10s %10s %9s %9s %9s %7s %9s %13s %6s %7s\n",
+    fprintf(f, "%7s %10s %10s %9s %9s %9s %7s %9s %6s %7s\n",
             "capac.", "total(ms)", "us/usuario", "us/posteo", "aciertos", "fallos", "tasa(%)",
-            "lecturas", "comparaciones", "altura", "errores");
+            "lecturas", "altura", "errores");
 }
 
 void mostrarFila(FILE *f, int capacidad, const tResultado *r)
@@ -255,11 +255,6 @@ void mostrarFila(FILE *f, int capacidad, const tResultado *r)
         fprintf(f, "%9d %9d %7.2f ", r->aciertos, r->fallos, 100.0 * r->aciertos / (r->aciertos + r->fallos));
 
     fprintf(f, "%9d ", r->lecturas);
-
-    if (capacidad == 0)
-        fprintf(f, "%13s ", "-");
-    else
-        fprintf(f, "%13lu ", r->comparaciones);
 
     if (r->altura < 0)
         fprintf(f, "%6s ", "-");

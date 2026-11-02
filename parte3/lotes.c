@@ -20,13 +20,13 @@
 
 const char *const TIPOS_LOTE[CANT_TIPOS_LOTE] = { "concentrado", "disperso", "ordenado" };
 
-static int aleatorio(unsigned *estado, int tope);
-static int idRepetido(const int *v, int cant, int id);
-static void armarPosteo(tPosteo *p, int id, unsigned *estado);
-static void elegirVirales(int *virales, unsigned *estado);
-static void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado);
-static void armarFeedDisperso(int *feed, unsigned *estado);
-static void armarFeedOrdenado(int *feed, unsigned k);
+int aleatorio(unsigned *estado, int tope);
+int idRepetido(const int *v, int cant, int id);
+void armarPosteo(tPosteo *p, int id, unsigned *estado);
+void elegirVirales(int *virales, unsigned *estado);
+void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado);
+void armarFeedDisperso(int *feed, unsigned *estado);
+void armarFeedOrdenado(int *feed, unsigned k);
 
 int tipoLoteValido(const char *tipo)
 {
@@ -45,7 +45,7 @@ void rutaUsuarios(char *ruta, const char *tipo)
 
 //numero en [0, tope). Es un xorshift de 32 bits (unsigned tiene 32 bits en MinGW); no se usa rand()
 //porque en MinGW llega solo a 32767 y no alcanza para cubrir los ids
-static int aleatorio(unsigned *estado, int tope)
+int aleatorio(unsigned *estado, int tope)
 {
     unsigned x = *estado;
 
@@ -58,7 +58,7 @@ static int aleatorio(unsigned *estado, int tope)
 }
 
 //1 si id ya esta entre las primeras cant posiciones de v
-static int idRepetido(const int *v, int cant, int id)
+int idRepetido(const int *v, int cant, int id)
 {
     int i = 0;
 
@@ -73,7 +73,7 @@ static int idRepetido(const int *v, int cant, int id)
 /* -------------------------------------------------------------------------- */
 
 //el texto es relleno con el id adelante ("Posteo 123: ..."), solo sirve para poder revisar el archivo a ojo
-static void armarPosteo(tPosteo *p, int id, unsigned *estado)
+void armarPosteo(tPosteo *p, int id, unsigned *estado)
 {
     char cab[32];
     int n, i = 0;
@@ -119,7 +119,7 @@ int generarPosteos(const char *ruta)
 /* -------------------------------------------------------------------------- */
 
 //elige VIRALES ids distintos entre si
-static void elegirVirales(int *virales, unsigned *estado)
+void elegirVirales(int *virales, unsigned *estado)
 {
     int i = 0;
 
@@ -132,7 +132,7 @@ static void elegirVirales(int *virales, unsigned *estado)
 }
 
 //cada lugar del feed es un viral con probabilidad PORC_VIRAL %, sino un posteo cualquiera; sin repetir ids dentro del feed
-static void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado)
+void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado)
 {
     int j = 0, id;
 
@@ -152,7 +152,7 @@ static void armarFeedConcentrado(int *feed, const int *virales, unsigned *estado
 }
 
 //posteos cualquiera de toda la base, sin repetir ids dentro del feed
-static void armarFeedDisperso(int *feed, unsigned *estado)
+void armarFeedDisperso(int *feed, unsigned *estado)
 {
     int j = 0, id;
 
@@ -170,7 +170,7 @@ static void armarFeedDisperso(int *feed, unsigned *estado)
 
 //ventana de ids consecutivos que avanza PASO_VENTANA por usuario (se superpone con la del usuario anterior);
 //si llega al final de la base vuelve a empezar, asi cada feed siempre queda creciente
-static void armarFeedOrdenado(int *feed, unsigned k)
+void armarFeedOrdenado(int *feed, unsigned k)
 {
     int base = k * PASO_VENTANA % (CANT_POSTEOS - LARGO_FEED + 1);
     int j = 0;
