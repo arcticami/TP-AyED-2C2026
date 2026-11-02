@@ -1,8 +1,8 @@
 /*
  * Lote de pruebas de la API publica de la cache (NO es parte de la entrega).
  *
- * Un unico .c para Parte 1 y Parte 2: se compila dos veces, cada una contra su
- * propio lrucache.h. Solo usa las primitivas publicas, nunca los campos internos.
+ * Un unico .c para Parte 1 y Parte 2: se compila dos veces, una normal y otra con
+ * -DPARTE2. Solo usa las primitivas publicas, nunca los campos internos.
  *
  * Conteo de memoria: se linkea con -Wl,--wrap=malloc,--wrap=free, asi todo
  * malloc/free que hacen la cache, la lista y el arbol pasa por las funciones
@@ -12,7 +12,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lrucache.h"
+
+/* PARTE2 definido (-DPARTE2) prueba la Parte 2; sino la Parte 1. Las dos tienen las mismas
+ * primitivas, la Parte 2 con un 2 al final, asi que se renombran para usar un solo codigo. */
+#ifdef PARTE2
+#include "../parte2/lrucache2.h"
+#define t_lru_cache t_lru_cache2
+#define crear_lrucache crear_lrucache2
+#define agregar_lrucache agregar_lrucache2
+#define obtener_lrucache obtener_lrucache2
+#define borrar_lrucache borrar_lrucache2
+#define vaciar_lrucache vaciar_lrucache2
+#else
+#include "../parte1/lrucache1.h"
+#endif
 
 /* ------------------------------------------------------------------ memoria */
 
@@ -91,24 +104,24 @@ static int cmpCad(const void *a, const void *b)
     return strcmp((const char *)a, (const char *)b);
 }
 
-static int agregarInt(tLruCache *c, int k, int v)
+static int agregarInt(t_lru_cache *c, int k, int v)
 {
-    return AgregarLruCache(c, &k, &v, sizeof(v));
+    return agregar_lrucache(c, &k, &v, sizeof(v));
 }
 
 /* devuelve el codigo de Obtener; el valor queda en *v (si lo encontro) */
-static int obtenerInt(tLruCache *c, int k, int *v)
+static int obtenerInt(t_lru_cache *c, int k, int *v)
 {
-    return ObtenerLruCache(c, &k, v, sizeof(*v));
+    return obtener_lrucache(c, &k, v, sizeof(*v));
 }
 
-static int borrarInt(tLruCache *c, int k)
+static int borrarInt(t_lru_cache *c, int k)
 {
-    return BorrarLruCache(c, &k);
+    return borrar_lrucache(c, &k);
 }
 
 /* 1 si esta. OJO: si esta, lo lleva al principio (efecto de Obtener) */
-static int estaInt(tLruCache *c, int k)
+static int estaInt(t_lru_cache *c, int k)
 {
     int v;
 
@@ -119,37 +132,37 @@ static int estaInt(tLruCache *c, int k)
 
 static void testParametros(void)
 {
-    tLruCache c;
+    t_lru_cache c;
 
     titulo("crear: parametros invalidos");
-    CHECK(CrearLruCache(&c, 0, sizeof(int), cmpInt) == ERROR_PARAMETROS, "capacidad 0");
-    CHECK(CrearLruCache(&c, 3, 0, cmpInt) == ERROR_PARAMETROS, "tamClave 0");
-    CHECK(CrearLruCache(&c, 3, sizeof(int), NULL) == ERROR_PARAMETROS, "cmp NULL");
-    CHECK(CrearLruCache(&c, 3, sizeof(int), cmpInt) == TODO_BIEN, "crear valido");
-    VaciarLruCache(&c);
+    CHECK(crear_lrucache(&c, 0, sizeof(int), cmpInt) == ERROR_PARAMETROS, "capacidad 0");
+    CHECK(crear_lrucache(&c, 3, 0, cmpInt) == ERROR_PARAMETROS, "tamClave 0");
+    CHECK(crear_lrucache(&c, 3, sizeof(int), NULL) == ERROR_PARAMETROS, "cmp NULL");
+    CHECK(crear_lrucache(&c, 3, sizeof(int), cmpInt) == TODO_BIEN, "crear valido");
+    vaciar_lrucache(&c);
 }
 
 static void testVacia(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v = 123;
 
     titulo("cache vacia");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     CHECK(obtenerInt(&c, 1, &v) == NO_EXISTE, "obtener en vacia");
     CHECK(v == 123, "obtener inexistente no debe tocar el destino (v=%d)", v);
     CHECK(borrarInt(&c, 1) == NO_EXISTE, "borrar en vacia");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "vaciar una cache vacia deja %ld bloques", vivos());
 }
 
 static void testBasico(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v = 0;
 
     titulo("agregar y obtener");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     CHECK(agregarInt(&c, 1, 10) == TODO_BIEN, "agregar 1");
     CHECK(agregarInt(&c, 2, 20) == TODO_BIEN, "agregar 2");
     CHECK(agregarInt(&c, 3, 30) == TODO_BIEN, "agregar 3");
@@ -157,16 +170,16 @@ static void testBasico(void)
     CHECK(obtenerInt(&c, 2, &v) == TODO_BIEN && v == 20, "obtener 2 -> %d", v);
     CHECK(obtenerInt(&c, 3, &v) == TODO_BIEN && v == 30, "obtener 3 -> %d", v);
     CHECK(obtenerInt(&c, 9, &v) == NO_EXISTE, "obtener 9");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga tras vaciar: %ld", vivos());
 }
 
 static void testDesborde(void)
 {
-    tLruCache c;
+    t_lru_cache c;
 
     titulo("desborde: sale el menos recientemente usado");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     agregarInt(&c, 3, 30);          /* orden: 3 2 1 */
@@ -175,17 +188,17 @@ static void testDesborde(void)
     CHECK(estaInt(&c, 2), "el 2 deberia seguir");
     CHECK(estaInt(&c, 3), "el 3 deberia seguir");
     CHECK(estaInt(&c, 4), "el 4 deberia estar");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testObtenerRefresca(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v;
 
     titulo("obtener refresca la recencia");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     agregarInt(&c, 3, 30);          /* orden: 3 2 1 */
@@ -195,32 +208,32 @@ static void testObtenerRefresca(void)
     CHECK(estaInt(&c, 1), "el 1 se uso, deberia seguir");
     CHECK(estaInt(&c, 3), "el 3 deberia seguir");
     CHECK(estaInt(&c, 4), "el 4 deberia estar");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
 }
 
 static void testObtenerMiss(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v;
 
     titulo("obtener que no encuentra no altera el orden");
-    CrearLruCache(&c, 2, sizeof(int), cmpInt);
+    crear_lrucache(&c, 2, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);          /* orden: 2 1 */
     obtenerInt(&c, 9, &v);          /* miss: no cambia nada */
     agregarInt(&c, 3, 30);          /* sale el 1 */
     CHECK(!estaInt(&c, 1), "el 1 deberia haber salido");
     CHECK(estaInt(&c, 2), "el 2 deberia seguir");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
 }
 
 static void testReemplazo(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v = 0;
 
     titulo("reemplazo (misma clave)");
-    CrearLruCache(&c, 2, sizeof(int), cmpInt);
+    crear_lrucache(&c, 2, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);          /* orden: 2 1 */
     CHECK(agregarInt(&c, 1, 99) == TODO_BIEN, "reemplazar 1");  /* orden: 1 2 */
@@ -228,33 +241,33 @@ static void testReemplazo(void)
     CHECK(!estaInt(&c, 2), "el 2 deberia haber salido");
     CHECK(obtenerInt(&c, 1, &v) == TODO_BIEN && v == 99, "el 1 deberia valer 99, vale %d", v);
     CHECK(estaInt(&c, 3), "el 3 deberia estar");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testReemplazoNoCrece(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int i;
 
     titulo("reemplazar muchas veces no consume capacidad");
-    CrearLruCache(&c, 2, sizeof(int), cmpInt);
+    crear_lrucache(&c, 2, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     for (i = 0; i < 10; i++)
         agregarInt(&c, 1, i);
     CHECK(estaInt(&c, 1), "el 1 deberia estar");
     CHECK(estaInt(&c, 2), "el 2 no deberia haber salido por reemplazar el 1");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testBorrar(void)
 {
-    tLruCache c;
+    t_lru_cache c;
 
     titulo("borrar primero, medio y ultimo");
-    CrearLruCache(&c, 5, sizeof(int), cmpInt);
+    crear_lrucache(&c, 5, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     agregarInt(&c, 3, 30);
@@ -267,16 +280,16 @@ static void testBorrar(void)
     CHECK(borrarInt(&c, 5) == NO_EXISTE, "borrar dos veces");
     CHECK(!estaInt(&c, 5) && !estaInt(&c, 3) && !estaInt(&c, 1), "borrados no deben estar");
     CHECK(estaInt(&c, 4) && estaInt(&c, 2), "los otros deben seguir");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testBorrarLiberaLugar(void)
 {
-    tLruCache c;
+    t_lru_cache c;
 
     titulo("borrar libera un lugar (cantidad bien llevada)");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     agregarInt(&c, 3, 30);
@@ -285,16 +298,16 @@ static void testBorrarLiberaLugar(void)
     CHECK(estaInt(&c, 1), "el 1 no deberia haber salido");
     CHECK(estaInt(&c, 3), "el 3 no deberia haber salido");
     CHECK(estaInt(&c, 4), "el 4 deberia estar");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
 }
 
 static void testCapacidadUno(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int v = 0;
 
     titulo("capacidad 1");
-    CrearLruCache(&c, 1, sizeof(int), cmpInt);
+    crear_lrucache(&c, 1, sizeof(int), cmpInt);
     agregarInt(&c, 1, 10);
     agregarInt(&c, 2, 20);
     agregarInt(&c, 3, 30);
@@ -303,34 +316,34 @@ static void testCapacidadUno(void)
     CHECK(borrarInt(&c, 3) == TODO_BIEN, "borrar el unico");
     CHECK(!estaInt(&c, 3), "ya no esta");
     CHECK(agregarInt(&c, 7, 70) == TODO_BIEN && estaInt(&c, 7), "se puede volver a agregar");
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testVaciarReutilizar(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int i, v = 0;
 
     titulo("vaciar y reutilizar");
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
     for (i = 1; i <= 5; i++)
         agregarInt(&c, i, i * 10);
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga tras vaciar: %ld", vivos());
     CHECK(obtenerInt(&c, 5, &v) == NO_EXISTE, "tras vaciar no hay nada");
     for (i = 1; i <= 3; i++)
         agregarInt(&c, i, i * 100);
     CHECK(estaInt(&c, 1) && estaInt(&c, 2) && estaInt(&c, 3),
           "tras vaciar entran 3 sin que salga ninguno (cantidad en 0)");
-    VaciarLruCache(&c);
-    VaciarLruCache(&c);             /* vaciar dos veces seguidas no debe romper */
+    vaciar_lrucache(&c);
+    vaciar_lrucache(&c);             /* vaciar dos veces seguidas no debe romper */
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testValoresDeTamanioVariable(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     int k = 1;
     char chico[3] = {'a', 'b', 'c'};
     char grande[40];
@@ -342,41 +355,41 @@ static void testValoresDeTamanioVariable(void)
     for (i = 0; i < 40; i++)
         grande[i] = (char)('A' + (i % 26));
 
-    CrearLruCache(&c, 3, sizeof(int), cmpInt);
-    CHECK(AgregarLruCache(&c, &k, chico, sizeof(chico)) == TODO_BIEN, "agregar valor chico");
+    crear_lrucache(&c, 3, sizeof(int), cmpInt);
+    CHECK(agregar_lrucache(&c, &k, chico, sizeof(chico)) == TODO_BIEN, "agregar valor chico");
 
     memset(buf, '.', sizeof(buf));
-    CHECK(ObtenerLruCache(&c, &k, buf, sizeof(chico)) == TODO_BIEN, "obtener chico");
+    CHECK(obtener_lrucache(&c, &k, buf, sizeof(chico)) == TODO_BIEN, "obtener chico");
     CHECK(memcmp(buf, chico, 3) == 0, "valor chico mal copiado");
 
     memset(buf, '.', sizeof(buf));
-    ObtenerLruCache(&c, &k, buf, 40);   /* buffer mas grande que el valor guardado */
+    obtener_lrucache(&c, &k, buf, 40);   /* buffer mas grande que el valor guardado */
     CHECK(memcmp(buf, chico, 3) == 0 && buf[3] == '.',
           "con buffer grande solo debe copiar los 3 bytes guardados (buf[3]='%c')", buf[3]);
 
-    CHECK(AgregarLruCache(&c, &k, grande, sizeof(grande)) == TODO_BIEN, "reemplazar por valor grande");
+    CHECK(agregar_lrucache(&c, &k, grande, sizeof(grande)) == TODO_BIEN, "reemplazar por valor grande");
     memset(buf, '.', sizeof(buf));
-    ObtenerLruCache(&c, &k, buf, sizeof(grande));
+    obtener_lrucache(&c, &k, buf, sizeof(grande));
     CHECK(memcmp(buf, grande, 40) == 0, "valor grande mal copiado tras reemplazo");
 
     memset(buf, '.', sizeof(buf));
-    ObtenerLruCache(&c, &k, buf, 5);    /* buffer mas chico que el valor */
+    obtener_lrucache(&c, &k, buf, 5);    /* buffer mas chico que el valor */
     CHECK(memcmp(buf, grande, 5) == 0 && buf[5] == '.',
           "con buffer chico solo debe copiar 5 bytes (buf[5]='%c')", buf[5]);
 
-    CHECK(AgregarLruCache(&c, &k, chico, sizeof(chico)) == TODO_BIEN, "reemplazar por valor chico");
+    CHECK(agregar_lrucache(&c, &k, chico, sizeof(chico)) == TODO_BIEN, "reemplazar por valor chico");
     memset(buf, '.', sizeof(buf));
-    ObtenerLruCache(&c, &k, buf, sizeof(buf));
+    obtener_lrucache(&c, &k, buf, sizeof(buf));
     CHECK(memcmp(buf, chico, 3) == 0 && buf[3] == '.', "no debe quedar resto del valor grande");
 
     titulo("valor vacio");
     k = 2;
-    CHECK(AgregarLruCache(&c, &k, NULL, 0) == TODO_BIEN, "agregar valor vacio (NULL, 0)");
-    CHECK(ObtenerLruCache(&c, &k, &vacio, 0) == TODO_BIEN, "obtener valor vacio");
+    CHECK(agregar_lrucache(&c, &k, NULL, 0) == TODO_BIEN, "agregar valor vacio (NULL, 0)");
+    CHECK(obtener_lrucache(&c, &k, &vacio, 0) == TODO_BIEN, "obtener valor vacio");
     CHECK(vacio == 'x', "obtener de 0 bytes no debe escribir");
-    CHECK(BorrarLruCache(&c, &k) == TODO_BIEN, "borrar valor vacio");
+    CHECK(borrar_lrucache(&c, &k) == TODO_BIEN, "borrar valor vacio");
 
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
@@ -398,7 +411,7 @@ static int cmpComp(const void *a, const void *b)
 
 static void testClavesDeOtrosTipos(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     char k1[16] = "ana";
     char k2[16] = "luis";
     char k3[16] = "ana2";
@@ -407,33 +420,33 @@ static void testClavesDeOtrosTipos(void)
     double pi = 3.14, d = 0;
 
     titulo("claves de cadena (char[16])");
-    CrearLruCache(&c, 2, sizeof(k1), cmpCad);
-    AgregarLruCache(&c, k1, "hola", 5);
-    AgregarLruCache(&c, k2, "chau", 5);
-    CHECK(ObtenerLruCache(&c, k1, v, sizeof(v)) == TODO_BIEN && strcmp(v, "hola") == 0,
+    crear_lrucache(&c, 2, sizeof(k1), cmpCad);
+    agregar_lrucache(&c, k1, "hola", 5);
+    agregar_lrucache(&c, k2, "chau", 5);
+    CHECK(obtener_lrucache(&c, k1, v, sizeof(v)) == TODO_BIEN && strcmp(v, "hola") == 0,
           "ana -> %s", v);
-    AgregarLruCache(&c, k3, "xx", 3);   /* sale luis */
-    CHECK(ObtenerLruCache(&c, k2, v, sizeof(v)) == NO_EXISTE, "luis deberia haber salido");
-    CHECK(ObtenerLruCache(&c, k1, v, sizeof(v)) == TODO_BIEN, "ana deberia seguir");
-    VaciarLruCache(&c);
+    agregar_lrucache(&c, k3, "xx", 3);   /* sale luis */
+    CHECK(obtener_lrucache(&c, k2, v, sizeof(v)) == NO_EXISTE, "luis deberia haber salido");
+    CHECK(obtener_lrucache(&c, k1, v, sizeof(v)) == TODO_BIEN, "ana deberia seguir");
+    vaciar_lrucache(&c);
 
     titulo("claves compuestas (struct)");
     memset(&a, 0, sizeof(a));
     memset(&b, 0, sizeof(b));
     a.dni = 10; a.tipo = 'A';
     b.dni = 10; b.tipo = 'B';
-    CrearLruCache(&c, 3, sizeof(tClaveComp), cmpComp);
-    AgregarLruCache(&c, &a, &pi, sizeof(pi));
-    CHECK(ObtenerLruCache(&c, &b, &d, sizeof(d)) == NO_EXISTE, "misma dni, distinto tipo: no es la misma clave");
-    AgregarLruCache(&c, &b, &pi, sizeof(pi));
-    CHECK(ObtenerLruCache(&c, &b, &d, sizeof(d)) == TODO_BIEN && d == 3.14, "clave compuesta");
-    VaciarLruCache(&c);
+    crear_lrucache(&c, 3, sizeof(tClaveComp), cmpComp);
+    agregar_lrucache(&c, &a, &pi, sizeof(pi));
+    CHECK(obtener_lrucache(&c, &b, &d, sizeof(d)) == NO_EXISTE, "misma dni, distinto tipo: no es la misma clave");
+    agregar_lrucache(&c, &b, &pi, sizeof(pi));
+    CHECK(obtener_lrucache(&c, &b, &d, sizeof(d)) == TODO_BIEN && d == 3.14, "clave compuesta");
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga: %ld", vivos());
 }
 
 static void testSinMemoria(void)
 {
-    tLruCache c;
+    t_lru_cache c;
     long n;
     int r;
     int v;
@@ -441,7 +454,7 @@ static void testSinMemoria(void)
     titulo("falla de memoria en agregar: no hay fugas ni elemento a medias");
     for (n = 1; n <= 6; n++)
     {
-        CrearLruCache(&c, 3, sizeof(int), cmpInt);
+        crear_lrucache(&c, 3, sizeof(int), cmpInt);
         armarFalla(n);
         r = agregarInt(&c, 1, 10);
         armarFalla(0);
@@ -452,7 +465,7 @@ static void testSinMemoria(void)
             CHECK(estaInt(&c, 1), "malloc %ld: dijo TODO_BIEN pero no esta", n);
         CHECK(agregarInt(&c, 2, 20) == TODO_BIEN && estaInt(&c, 2),
               "tras la falla %ld la cache debe seguir usable", n);
-        VaciarLruCache(&c);
+        vaciar_lrucache(&c);
         CHECK(vivos() == 0, "falla en malloc %ld dejo %ld bloques", n, vivos());
     }
 }
@@ -550,7 +563,7 @@ static unsigned azar(void)
 
 static void testContraModelo(int cap, int rango, int ops)
 {
-    tLruCache c;
+    t_lru_cache c;
     tRef ref;
     int i, j, op, k, v, vref, r, rref;
     int malos = 0, finalMalos = 0;
@@ -558,7 +571,7 @@ static void testContraModelo(int cap, int rango, int ops)
     printf("[contraste con modelo: capacidad %d, claves 0..%d, %d operaciones]\n", cap, rango - 1, ops);
     ref.n = 0;
     ref.cap = cap;
-    CrearLruCache(&c, (unsigned)cap, sizeof(int), cmpInt);
+    crear_lrucache(&c, (unsigned)cap, sizeof(int), cmpInt);
 
     for (i = 0; i < ops; i++)
     {
@@ -601,7 +614,7 @@ static void testContraModelo(int cap, int rango, int ops)
     }
     CHECK(finalMalos == 0, "%d elementos del modelo no coinciden al final", finalMalos);
 
-    VaciarLruCache(&c);
+    vaciar_lrucache(&c);
     CHECK(vivos() == 0, "fuga tras el contraste: %ld", vivos());
 }
 

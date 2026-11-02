@@ -57,4 +57,4 @@ dkms.conf
 bin/
 obj/
 *.bin
-reporte_parte*.txt
+reporte.txt
