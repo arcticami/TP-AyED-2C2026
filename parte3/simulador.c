@@ -16,14 +16,12 @@
  * Ejemplos:  simulador                 semilla 1, capacidades por defecto
  *            simulador 7               semilla 7, capacidades por defecto
  *            simulador 7 0 50 500      semilla 7, capacidades 0, 50 y 500
- * (En Code::Blocks los argumentos se cargan en Project > Set programs' arguments.)
- *
  * Pasos:
  *   1) genera posteos.bin y los tres lotes de usuarios (concentrado, disperso y ordenado) con la semilla;
  *   2) para cada lote, cada parte y cada capacidad procesa todos los usuarios de la primera a la ultima: por cada
  *      id de su feed pide el posteo a la cache y, si no esta, lo lee del archivo y lo guarda en la cache;
  *   3) muestra los resultados por pantalla y los guarda en reporte.txt.
- * Los datos de los posteos no se muestran ni se guardan: solo se mide.
+ * Los datos de los posteos no se muestran ni se guardan pq son solo para medir.
  */
 
 #define SEMILLA_DEFECTO 1
@@ -54,13 +52,9 @@ typedef struct
     t_lru_cache2 c2;
 } tCacheSim;
 
-//VARIABLE GLOBAL SOLO PARA CONTAR COMPARACIONES (columna "comparaciones" del reporte). El cmp que recibe la cache
-//no puede recibir nada mas que las dos claves, asi que no hay otro lugar de donde colgar el contador.
-//Es una metrica opcional: si no gusta se borra junto con la columna y no afecta a nada mas.
-unsigned long g_comparaciones = 0;
-
 int cmpId(const void *a, const void *b);
 int leerPosteo(FILE *fp, int id, tPosteo *p);
+//simulaciones de cache
 int crearCacheSim(tCacheSim *c, int parte, unsigned capacidad);
 int obtenerCacheSim(tCacheSim *c, int id, tPosteo *p);
 int agregarCacheSim(tCacheSim *c, int id, const tPosteo *p);
@@ -226,8 +220,6 @@ int cmpId(const void *a, const void *b)
     int x = *(const int *)a;
     int y = *(const int *)b;
 
-    g_comparaciones++; //solo para la metrica de comparaciones
-
     return (x > y) - (x < y);
 }
 
@@ -312,7 +304,6 @@ int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
     {
         //se pone todo lo del resultado en cero
         r->aciertos = r->fallos = r->lecturas = r->errores = 0;
-        g_comparaciones = 0;
 
         //si esta corrida se va a hacer con cache (hay carre) se crea de la parte pedida
         if (hayCache && crearCacheSim(&cache, parte, capacidad) != TODO_BIEN)
@@ -366,13 +357,12 @@ int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
     }
     //la cantidad de segundos q fui sumando dividido las repeticiones da el tiempo promedio de las mismas
     r->segundos = suma / REPETICIONES;
-    r->comparaciones = g_comparaciones;
 
     return ok;
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   SALIDA                                   */
+/*                                   SALIDA (son todas cosas de printeo)      */
 /* -------------------------------------------------------------------------- */
 
 void mostrarTitulo(FILE *f, const char *tipo)
