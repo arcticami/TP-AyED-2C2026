@@ -1,4 +1,4 @@
-#include "lrucache.h"
+#include "lrucache2.h"
 
 #define MINIMO(X, Y) ((X) < (Y) ? (X) : (Y))
 
@@ -6,19 +6,19 @@
 /*                            FUNCIONES AUXILIARES                            */
 /* -------------------------------------------------------------------------- */
 
-void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo);
-tNodoD * nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave);
-void descartarUltimo(tLruCache *c);
+static void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo);
+static tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave);
+static void descartarUltimo(t_lru_cache2 *c);
 
 //arma la entrada del indice: la clave y a continuacion el puntero al nodo de la lista
-void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo)
+static void armarEntradaIndice(void *buf, const void *clave, unsigned tamClave, tNodoD *nodo)
 {
     memcpy(buf, clave, tamClave);
     memcpy((char *)buf + tamClave, &nodo, sizeof(tNodoD *)); //con memcpy porque el puntero puede quedar desalineado
 }
 
 //devuelve el nodo de la lista al que apunta una entrada del indice
-tNodoD * nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
+static tNodoD *nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
 {
     tNodoD *nodo;
 
@@ -27,7 +27,7 @@ tNodoD * nodoDeEntradaIndice(const tArbol *enlace, unsigned tamClave)
 }
 
 //saca el ultimo de la lista y su entrada del indice
-void descartarUltimo(tLruCache *c)
+static void descartarUltimo(t_lru_cache2 *c)
 {
     tNodoD *ult = c->lista.ult;
     tArbol *enlace;
@@ -45,23 +45,23 @@ void descartarUltimo(tLruCache *c)
 /*                                 PRIMITIVAS                                 */
 /* -------------------------------------------------------------------------- */
 
-int CrearLruCache(tLruCache *c, unsigned capMax, unsigned tamClave, tCmpClave cmp)
+int crear_lrucache2(t_lru_cache2 *c, unsigned capacidad, unsigned tamClave, tCmpClave cmp)
 {
-    if (c == NULL || capMax == 0 || tamClave == 0 || cmp == NULL)
+    if (c == NULL || capacidad == 0 || tamClave == 0 || cmp == NULL)
         return ERROR_PARAMETROS;
 
     crearListaD(&c->lista);
     crearArbol(&c->indice);
 
     c->cantidad = 0;
-    c->capacidad = capMax;
+    c->capacidad = capacidad;
     c->tamClave = tamClave;
     c->cmp = cmp;
 
     return TODO_BIEN;
 }
 
-void VaciarLruCache(tLruCache *c)
+void vaciar_lrucache2(t_lru_cache2 *c)
 {
     if (c == NULL)
         return;
@@ -72,7 +72,7 @@ void VaciarLruCache(tLruCache *c)
     c->cantidad = 0; //capacidad, tamClave y cmp se conservan
 }
 
-int AgregarLruCache(tLruCache *c, const void *clave, const void * valor, unsigned tamValor)
+int agregar_lrucache2(t_lru_cache2 *c, const void *clave, const void *valor, unsigned tamValor)
 {
     tArbol *enlace;
     tNodoD *nodo;
@@ -138,7 +138,7 @@ int AgregarLruCache(tLruCache *c, const void *clave, const void * valor, unsigne
     return TODO_BIEN;
 }
 
-int ObtenerLruCache(tLruCache *c, const void *clave, void *valor, unsigned tamValor)
+int obtener_lrucache2(t_lru_cache2 *c, const void *clave, void *valor, unsigned tamValor)
 {
     tArbol *enlace;
     tNodoD *nodo;
@@ -159,7 +159,7 @@ int ObtenerLruCache(tLruCache *c, const void *clave, void *valor, unsigned tamVa
     return TODO_BIEN;
 }
 
-int BorrarLruCache(tLruCache *c, const void *clave)
+int borrar_lrucache2(t_lru_cache2 *c, const void *clave)
 {
     tArbol *enlace;
     tNodoD *nodo;
@@ -179,7 +179,7 @@ int BorrarLruCache(tLruCache *c, const void *clave)
     return TODO_BIEN;
 }
 
-unsigned AlturaIndiceLruCache(const tLruCache *c)
+unsigned altura_indice_lrucache2(const t_lru_cache2 *c)
 {
     if (c == NULL)
         return 0;

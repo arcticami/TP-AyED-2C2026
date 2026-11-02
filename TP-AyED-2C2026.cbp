@@ -6,15 +6,24 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
+			<Target title="Simulador">
+				<Option output="bin/Simulador" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="." />
+				<Option object_output="obj/Simulador/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+			</Target>
 			<Target title="Test_P1">
-				<Option output="bin/cbp/Test_P1" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Test_P1" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="." />
 				<Option object_output="obj/Test_P1/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="parte1" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--wrap=malloc" />
@@ -22,46 +31,22 @@
 				</Linker>
 			</Target>
 			<Target title="Test_P2">
-				<Option output="bin/cbp/Test_P2" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Test_P2" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="." />
 				<Option object_output="obj/Test_P2/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="parte2" />
-					<Add directory="arbol" />
+					<Add option="-DPARTE2" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--wrap=malloc" />
 					<Add option="-Wl,--wrap=free" />
 				</Linker>
 			</Target>
-			<Target title="Sim_P1">
-				<Option output="bin/cbp/Sim_P1" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="." />
-				<Option object_output="obj/Sim_P1/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add directory="parte1" />
-				</Compiler>
-			</Target>
-			<Target title="Sim_P2">
-				<Option output="bin/cbp/Sim_P2" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="." />
-				<Option object_output="obj/Sim_P2/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add directory="parte2" />
-					<Add directory="arbol" />
-				</Compiler>
-			</Target>
 			<Target title="Generador">
-				<Option output="bin/cbp/Generador" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Generador" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="." />
 				<Option object_output="obj/Generador/" />
 				<Option type="1" />
@@ -72,65 +57,57 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="Todo" targets="Test_P1;Test_P2;Sim_P1;Sim_P2;Generador;" />
+			<Add alias="Todo" targets="Simulador;Test_P1;Test_P2;Generador;" />
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-Wextra" />
 			<Add option="-std=c99" />
-			<Add directory="lista" />
 		</Compiler>
 		<Unit filename="arbol/arbol_bin_busq.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Test_P2" />
-			<Option target="Sim_P2" />
 		</Unit>
 		<Unit filename="arbol/arbol_bin_busq.h" />
-		<Unit filename="parte1/lrucache.h">
-			<Option target="Test_P1" />
-			<Option target="Sim_P1" />
-		</Unit>
 		<Unit filename="lista/lista.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Test_P1" />
-			<Option target="Sim_P1" />
 		</Unit>
 		<Unit filename="lista/lista.h" />
 		<Unit filename="lista/listaDoble.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Test_P2" />
-			<Option target="Sim_P2" />
 		</Unit>
 		<Unit filename="lista/listaDoble.h" />
 		<Unit filename="parte1/lrucache1.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Test_P1" />
-			<Option target="Sim_P1" />
 		</Unit>
-		<Unit filename="parte2/lrucache.h">
-			<Option target="Test_P2" />
-			<Option target="Sim_P2" />
-		</Unit>
+		<Unit filename="parte1/lrucache1.h" />
 		<Unit filename="parte2/lrucache2.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Test_P2" />
-			<Option target="Sim_P2" />
 		</Unit>
-		<Unit filename="parte3/generador.c">
-			<Option compilerVar="CC" />
-			<Option target="Generador" />
-		</Unit>
+		<Unit filename="parte2/lrucache2.h" />
 		<Unit filename="parte3/lotes.c">
 			<Option compilerVar="CC" />
+			<Option target="Simulador" />
 			<Option target="Generador" />
-			<Option target="Sim_P1" />
-			<Option target="Sim_P2" />
 		</Unit>
 		<Unit filename="parte3/lotes.h" />
 		<Unit filename="parte3/simulador.c">
 			<Option compilerVar="CC" />
-			<Option target="Sim_P1" />
-			<Option target="Sim_P2" />
+			<Option target="Simulador" />
+		</Unit>
+		<Unit filename="parte3/tweener.h" />
+		<Unit filename="pruebas/generador.c">
+			<Option compilerVar="CC" />
+			<Option target="Generador" />
 		</Unit>
 		<Unit filename="pruebas/test_lrucache.c">
 			<Option compilerVar="CC" />

@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "lrucache.h"
+#include "../parte1/lrucache1.h"
+#include "../parte2/lrucache2.h"
 #include "tweener.h"
 #include "lotes.h"
 
 /*
- * Simulador de uso de Tweener con y sin LRU Cache.
+ * Simulador de uso de Tweener sin cache, con la LRU Cache de la Parte 1 y con la de la Parte 2.
  *
  * Uso:  simulador [semilla [capacidad ...]]
  *
@@ -15,13 +16,13 @@
  * Ejemplos:  simulador                 semilla 1, capacidades por defecto
  *            simulador 7               semilla 7, capacidades por defecto
  *            simulador 7 0 50 500      semilla 7, capacidades 0, 50 y 500
+ * (En Code::Blocks los argumentos se cargan en Project > Set programs' arguments.)
  *
- * Un mismo .c se compila dos veces: contra parte1/lrucache.h (lista simple) o contra
- * parte2/lrucache.h (lista doble + arbol). Cada compilacion es un programa completo:
+ * Pasos:
  *   1) genera posteos.bin y los tres lotes de usuarios (concentrado, disperso y ordenado) con la semilla;
- *   2) para cada lote y cada capacidad procesa todos los usuarios de la primera a la ultima: por cada id de su
- *      feed pide el posteo a la cache y, si no esta, lo lee del archivo y lo guarda en la cache;
- *   3) muestra los resultados por pantalla y los guarda en el archivo de reporte de la variante.
+ *   2) para cada lote, cada parte y cada capacidad procesa todos los usuarios de la primera a la ultima: por cada
+ *      id de su feed pide el posteo a la cache y, si no esta, lo lee del archivo y lo guarda en la cache;
+ *   3) muestra los resultados por pantalla y los guarda en reporte.txt.
  * Los datos de los posteos no se muestran ni se guardan: solo se mide.
  */
 
@@ -29,16 +30,8 @@
 #define MAX_CAPACIDADES 32
 #define REPETICIONES    5       //cada capacidad se corre varias veces y se informa el tiempo promedio
 #define SIN_BUFFER      1       //1 = el archivo de posteos se lee sin buffer de stdio
-
-//La Parte 2 incluye al arbol, la Parte 1 no: asi se sabe contra cual se compilo sin tocar nada mas
-#ifdef ARBOL_BIN_BUSQ_H_INCLUDED
-#define TIENE_ALTURA
-#define NOMBRE_VARIANTE "Parte 2 - lista doble + indice arbol"
-#define ARCHIVO_REPORTE "reporte_parte2.txt"
-#else
-#define NOMBRE_VARIANTE "Parte 1 - lista simple"
-#define ARCHIVO_REPORTE "reporte_parte1.txt"
-#endif
+#define ARCHIVO_REPORTE "reporte.txt"
+#define CANT_PARTES     2
 
 const int CAPACIDADES_DEFECTO[] = { 0, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000 };
 
@@ -53,6 +46,14 @@ typedef struct
     int altura;                 //altura del arbol indice; -1 si no aplica (Parte 1 o sin cache)
 } tResultado;
 
+//las dos caches tienen las mismas primitivas pero distinto tipo; esto permite que correr() use cualquiera de las dos
+typedef struct
+{
+    int parte; //1 = lista simple, 2 = lista doble + indice arbol
+    t_lru_cache c1;
+    t_lru_cache2 c2;
+} tCacheSim;
+
 //VARIABLE GLOBAL SOLO PARA CONTAR COMPARACIONES (columna "comparaciones" del reporte). El cmp que recibe la cache
 //no puede recibir nada mas que las dos claves, asi que no hay otro lugar de donde colgar el contador.
 //Es una metrica opcional: si no gusta se borra junto con la columna y no afecta a nada mas.
@@ -61,10 +62,16 @@ unsigned long g_comparaciones = 0;
 int cmpId(const void *a, const void *b);
 int leerPosteo(FILE *fp, int id, tPosteo *p);
 void calentarArchivo(FILE *fp);
-int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r);
+int crearCacheSim(tCacheSim *c, int parte, unsigned capacidad);
+int obtenerCacheSim(tCacheSim *c, int id, tPosteo *p);
+int agregarCacheSim(tCacheSim *c, int id, const tPosteo *p);
+int alturaCacheSim(const tCacheSim *c);
+void vaciarCacheSim(tCacheSim *c);
+int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r);
 int generarLotes(unsigned semilla);
 int simularLote(FILE *fpPost, const char *tipo, const int *caps, int cantCaps, FILE *salidas[], int cantSalidas);
 void mostrarTitulo(FILE *f, const char *tipo);
+void mostrarParte(FILE *f, int parte);
 void mostrarEncabezado(FILE *f);
 void mostrarFila(FILE *f, int capacidad, const tResultado *r);
 
@@ -128,8 +135,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < cantSalidas; i++)
     {
-        fprintf(salidas[i], "\n%s\n", NOMBRE_VARIANTE);
-        fprintf(salidas[i], "semilla  : %u\n", semilla);
+        fprintf(salidas[i], "\nsemilla  : %u\n", semilla);
         fprintf(salidas[i], "posteos  : %d (registro de %d bytes)\n", CANT_POSTEOS, (int)sizeof(tPosteo));
         fprintf(salidas[i], "usuarios : %d por lote (feed de %d posteos)\n", CANT_USUARIOS, LARGO_FEED);
         fprintf(salidas[i], "tiempo   : promedio de %d corridas; capacidad 0 = sin cache\n", REPETICIONES);
@@ -172,7 +178,7 @@ int simularLote(FILE *fpPost, const char *tipo, const int *caps, int cantCaps, F
     char ruta[TAM_RUTA];
     FILE *fpUsu;
     tResultado r;
-    int i, s, ok = 1;
+    int i, s, parte, ok = 1;
 
     rutaUsuarios(ruta, tipo);
     if ((fpUsu = fopen(ruta, "rb")) == NULL)
@@ -182,26 +188,32 @@ int simularLote(FILE *fpPost, const char *tipo, const int *caps, int cantCaps, F
     }
 
     for (s = 0; s < cantSalidas; s++)
-    {
         mostrarTitulo(salidas[s], tipo);
-        mostrarEncabezado(salidas[s]);
-    }
 
-    i = 0;
-    while (ok && i < cantCaps)
+    for (parte = 1; ok && parte <= CANT_PARTES; parte++)
     {
-        ok = correr(fpPost, fpUsu, caps[i], &r);
-        if (ok)
+        for (s = 0; s < cantSalidas; s++)
         {
-            for (s = 0; s < cantSalidas; s++)
-            {
-                mostrarFila(salidas[s], caps[i], &r);
-                fflush(salidas[s]);
-            }
+            mostrarParte(salidas[s], parte);
+            mostrarEncabezado(salidas[s]);
         }
-        else
-            fprintf(stderr, "Error durante la simulacion con capacidad %d\n", caps[i]);
-        i++;
+
+        i = 0;
+        while (ok && i < cantCaps)
+        {
+            ok = correr(fpPost, fpUsu, parte, caps[i], &r);
+            if (ok)
+            {
+                for (s = 0; s < cantSalidas; s++)
+                {
+                    mostrarFila(salidas[s], caps[i], &r);
+                    fflush(salidas[s]);
+                }
+            }
+            else
+                fprintf(stderr, "Error durante la simulacion de la Parte %d con capacidad %d\n", parte, caps[i]);
+            i++;
+        }
     }
 
     fclose(fpUsu);
@@ -241,10 +253,62 @@ void calentarArchivo(FILE *fp)
         ;
 }
 
-//una corrida completa, repetida REPETICIONES veces; devuelve 0 si hubo un error de lectura o de memoria
-int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r)
+/* -------------------------------------------------------------------------- */
+/*                 CACHE DE LA SIMULACION (PARTE 1 O PARTE 2)                 */
+/* -------------------------------------------------------------------------- */
+
+int crearCacheSim(tCacheSim *c, int parte, unsigned capacidad)
 {
-    tLruCache cache;
+    c->parte = parte;
+
+    if (parte == 1)
+        return crear_lrucache(&c->c1, capacidad, sizeof(int), cmpId);
+
+    return crear_lrucache2(&c->c2, capacidad, sizeof(int), cmpId);
+}
+
+int obtenerCacheSim(tCacheSim *c, int id, tPosteo *p)
+{
+    if (c->parte == 1)
+        return obtener_lrucache(&c->c1, &id, p, sizeof(tPosteo));
+
+    return obtener_lrucache2(&c->c2, &id, p, sizeof(tPosteo));
+}
+
+int agregarCacheSim(tCacheSim *c, int id, const tPosteo *p)
+{
+    if (c->parte == 1)
+        return agregar_lrucache(&c->c1, &id, p, sizeof(tPosteo));
+
+    return agregar_lrucache2(&c->c2, &id, p, sizeof(tPosteo));
+}
+
+//altura del arbol indice; -1 en la Parte 1, que no tiene arbol
+int alturaCacheSim(const tCacheSim *c)
+{
+    if (c->parte == 1)
+        return -1;
+
+    return altura_indice_lrucache2(&c->c2);
+}
+
+void vaciarCacheSim(tCacheSim *c)
+{
+    if (c->parte == 1)
+        vaciar_lrucache(&c->c1);
+    else
+        vaciar_lrucache2(&c->c2);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 SIMULACION                                 */
+/* -------------------------------------------------------------------------- */
+
+//una corrida completa con la cache de la parte indicada, repetida REPETICIONES veces;
+//devuelve 0 si hubo un error de lectura o de memoria
+int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
+{
+    tCacheSim cache;
     tUsuario u;
     tPosteo p;
     double ini, fin, suma = 0;
@@ -258,7 +322,7 @@ int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r)
         r->aciertos = r->fallos = r->lecturas = r->errores = 0;
         g_comparaciones = 0;
 
-        if (hayCache && CrearLruCache(&cache, capacidad, sizeof(int), cmpId) != TODO_BIEN)
+        if (hayCache && crearCacheSim(&cache, parte, capacidad) != TODO_BIEN)
             return 0;
 
         rewind(fpUsu);
@@ -270,7 +334,7 @@ int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r)
             while (ok && j < LARGO_FEED)
             {
                 id = u.feed[j];
-                hit = hayCache && ObtenerLruCache(&cache, &id, &p, sizeof(tPosteo)) == TODO_BIEN;
+                hit = hayCache && obtenerCacheSim(&cache, id, &p) == TODO_BIEN;
 
                 if (hit)
                     r->aciertos++;
@@ -283,7 +347,7 @@ int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r)
                     r->lecturas++;
 
                     if (ok && hayCache)
-                        ok = AgregarLruCache(&cache, &id, &p, sizeof(tPosteo)) == TODO_BIEN;
+                        ok = agregarCacheSim(&cache, id, &p) == TODO_BIEN;
                 }
 
                 if (ok && p.id != id)
@@ -297,10 +361,8 @@ int correr(FILE *fpPost, FILE *fpUsu, int capacidad, tResultado *r)
 
         if (hayCache)
         {
-#ifdef TIENE_ALTURA
-            r->altura = AlturaIndiceLruCache(&cache);
-#endif
-            VaciarLruCache(&cache);
+            r->altura = alturaCacheSim(&cache);
+            vaciarCacheSim(&cache);
         }
         rep++;
     }
@@ -326,6 +388,14 @@ void mostrarTitulo(FILE *f, const char *tipo)
     for (i = 0; i < 100; i++)
         fputc('-', f);
     fprintf(f, "\n");
+}
+
+void mostrarParte(FILE *f, int parte)
+{
+    if (parte == 1)
+        fprintf(f, "\nParte 1 - lista simple\n");
+    else
+        fprintf(f, "\nParte 2 - lista doble + indice arbol\n");
 }
 
 void mostrarEncabezado(FILE *f)

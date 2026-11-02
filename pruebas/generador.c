@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "tweener.h"
-#include "lotes.h"
+#include "../parte3/tweener.h"
+#include "../parte3/lotes.h"
 
 /*
  * Generador de un lote de prueba para el simulador de Tweener.
@@ -13,7 +13,8 @@
  *   usuarios_<tipo>.bin      cantUsuarios registros {usuario, feed[LARGO_FEED]}
  *
  * La misma semilla genera siempre el mismo lote.
- * (Los simuladores generan los tres lotes por su cuenta; este programa sirve para generar uno solo.)
+ * Es un programa aparte (tiene su propio main): el simulador ya genera los tres lotes por su cuenta,
+ * este sirve para generar uno solo y revisarlo. Se compila con parte3/lotes.c.
  */
 
 int main(int argc, char *argv[])
