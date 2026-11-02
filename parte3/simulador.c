@@ -310,46 +310,53 @@ int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
 
     while (ok && rep < REPETICIONES)
     {
+        //se pone todo lo del resultado en cero
         r->aciertos = r->fallos = r->lecturas = r->errores = 0;
         g_comparaciones = 0;
 
+        //si esta corrida se va a hacer con cache (hay carre) se crea de la parte pedida
         if (hayCache && crearCacheSim(&cache, parte, capacidad) != TODO_BIEN)
             return 0;
-
+        //voy al principio del archivo de usuarios
         rewind(fpUsu);
+        //y esto es para guardar cuanto tiempo de procesador uso el programa hasta ahora (para arrancar la medicion desde aca)
         ini = clock();
-
+        //leyendo de a un usuario por vez...
         while (ok && fread(&u, sizeof(tUsuario), 1, fpUsu) == 1)
         {
             j = 0;
+            //por cada posteo....
             while (ok && j < LARGO_FEED)
             {
                 id = u.feed[j];
+
+                //guardo si hubo acierto o no con el resultado q devuelva obtenercache si corresponde
                 hit = hayCache && obtenerCacheSim(&cache, id, &p) == TODO_BIEN;
 
                 if (hit)
                     r->aciertos++;
                 else
                 {
+                    //si entraste a este else es pq algo fallo, si hay cache entonces la falla es q no esta en cache el dato
                     if (hayCache)
                         r->fallos++;
-
+                    //leo el posteo del archivo con acceso directo y cuento una lectura
                     ok = leerPosteo(fpPost, id, &p);
                     r->lecturas++;
-
+                    //si lo pude leer, como estoy aca pq no estaba en cache, lo guardo en cache
                     if (ok && hayCache)
                         ok = agregarCacheSim(&cache, id, &p) == TODO_BIEN;
                 }
-
+                //checkeo q el id de lo q lei coincida con el id pedido
                 if (ok && p.id != id)
                     r->errores++;
                 j++;
             }
         }
-
+        //aca tengo el tiempo de finalizacion de hacer las pasadas de todos los usuarios en 1 repeticion, lo pasoa s egundos
         fin = clock();
         suma += (fin - ini) / CLOCKS_PER_SEC;
-
+        //guardo la altura del arbol y vacio la cache
         if (hayCache)
         {
             r->altura = alturaCacheSim(&cache);
@@ -357,7 +364,7 @@ int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
         }
         rep++;
     }
-
+    //la cantidad de segundos q fui sumando dividido las repeticiones da el tiempo promedio de las mismas
     r->segundos = suma / REPETICIONES;
     r->comparaciones = g_comparaciones;
 
