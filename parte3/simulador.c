@@ -304,7 +304,8 @@ int correr(FILE *fpPost, FILE *fpUsu, int parte, int capacidad, tResultado *r)
     double ini, fin, suma = 0;
     int rep = 0, j, id, hit, ok = 1, hayCache = capacidad > 0;
 
-    memset(r, 0, sizeof(tResultado));
+    //la altura del arbol es -1 pq no corresponde
+    //pero cambia si hay cache de la parte 2
     r->altura = -1;
 
     while (ok && rep < REPETICIONES)
